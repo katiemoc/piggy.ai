@@ -32,6 +32,8 @@ export function LoginPage() {
     }
   };
 
+
+  
   return (
     <div className="min-h-screen flex text-[#1a1a1a]">
       {/* ── Left branding panel (desktop only) ── */}
