@@ -37,7 +37,7 @@ Return ONLY a raw JSON array (no markdown, no explanation) in this exact shape:
     "description": "merchant or payee name",
     "amount": 0.00,
     "type": "debit" or "credit",
-    "category": "one of: Food & Dining, Shopping, Transport, Housing, Subscriptions, Income, Other"
+    "category": "one of: Food & Dining, Shopping, Transport, Housing, Subscriptions, Income, Transfer, Other"
   }
 ]
 Positive amounts only — use "type" to distinguish debits vs credits.
@@ -76,17 +76,7 @@ STEP 3 — Extract all transactions:
 Paginate through every page (click "Show More" / "Next" until none remain).
 Capture each row: date, description, amount, debit or credit.
 
-<<<<<<< HEAD
 STEP 4 — Return output:
-=======
-STEP 6 — Download as PDF:
-Look for a "Download", "Export", or printer icon near the transaction list.
-If a format option appears, select "PDF". If not, look for a "View Statement" or "Print" option and use the browser's print-to-PDF feature (Ctrl+P / Cmd+P → Save as PDF).
-Confirm the download so the file saves to the user's device.
-Wait for the download to complete before continuing.
-
-STEP 7 — Return output:
->>>>>>> 4fbbb2892c09c4067701c5441d921e83e5c46098
 ${OUTPUT_FORMAT}
     `.trim(),
   },
@@ -114,23 +104,7 @@ STEP 3 — Extract all transactions:
 Click "See more transactions" or any load-more control until all transactions are visible.
 Capture each row: posted date, description, amount, debit or credit.
 
-<<<<<<< HEAD
 STEP 4 — Return output:
-=======
-STEP 5 — Extract all transactions:
-Scroll down through the full list. If a "See more transactions" or load-more button appears,
-click it repeatedly until no more appear.
-Capture every transaction: posted date, description, amount, and debit vs credit.
-
-STEP 6 — Download as PDF:
-Look for a download or print icon near the top of the transaction list (Chase typically shows a downward arrow icon labeled "Download").
-Click it and select "PDF" from the format options if prompted.
-If only CSV/other formats are available, look for a "Statements" section in the left sidebar and download the corresponding monthly statement as a PDF instead.
-Confirm the download so the file saves to the user's device.
-Wait for the download to complete before continuing.
-
-STEP 7 — Return output:
->>>>>>> 4fbbb2892c09c4067701c5441d921e83e5c46098
 ${OUTPUT_FORMAT}
     `.trim(),
   },
@@ -157,23 +131,7 @@ STEP 3 — Extract all transactions:
 Paginate through all pages until every transaction in the 90-day window is loaded.
 Capture each row: date, description, amount, debit or credit.
 
-<<<<<<< HEAD
 STEP 4 — Return output:
-=======
-STEP 5 — Extract all transactions:
-Scroll through all results. If there is a "Next" page or "Load More" option, click through
-every page until all transactions in the 90-day window are visible.
-Capture: date, description/merchant, amount, and whether each transaction is a debit or credit.
-
-STEP 6 — Download as PDF:
-Look for a "Download", "Export", or "Print" button near the transaction list or account activity header.
-If a format selector appears, choose "PDF". If the only export option is CSV/OFX, alternatively navigate to "Statements" in the account menu and download the most recent statement(s) as PDF.
-If no direct PDF option exists, use Cmd+P / Ctrl+P → Save as PDF to print the current transaction view to a PDF file.
-Confirm the download so the file saves to the user's device.
-Wait for the download to complete before continuing.
-
-STEP 7 — Return output:
->>>>>>> 4fbbb2892c09c4067701c5441d921e83e5c46098
 ${OUTPUT_FORMAT}
     `.trim(),
   },
@@ -200,23 +158,7 @@ STEP 3 — Extract all transactions:
 Click "Next" or any pagination control until all transactions are loaded.
 Capture each row: posted date, description, amount, debit or credit.
 
-<<<<<<< HEAD
 STEP 4 — Return output:
-=======
-STEP 5 — Extract all transactions:
-Scroll through all results. Click "Next" or any pagination control to load additional pages
-until all transactions are captured.
-For each transaction capture: date posted, description, amount, and transaction type
-(debit/withdrawal vs credit/deposit).
-
-STEP 6 — Download as PDF:
-Look for the download icon (downward arrow) near the top right of the transaction list — Bank of America typically labels this "Download Transactions".
-Click it. If a format menu appears, select "PDF". If PDF is not an option, alternatively go to "Statements & Documents" in the top navigation, find the statement covering the last 90 days, and download it as a PDF.
-Confirm the download so the file saves to the user's device.
-Wait for the download to complete before continuing.
-
-STEP 7 — Return output:
->>>>>>> 4fbbb2892c09c4067701c5441d921e83e5c46098
 ${OUTPUT_FORMAT}
     `.trim(),
   },
@@ -243,23 +185,7 @@ STEP 3 — Extract all transactions:
 Click "Next" or "More" until every transaction in the range is loaded.
 Capture each row: date, description, amount, debit or credit.
 
-<<<<<<< HEAD
 STEP 4 — Return output:
-=======
-STEP 5 — Extract all transactions:
-Scroll through and paginate through ALL results — click "Next" or "More" until every
-transaction in the 90-day range has been loaded.
-For each transaction capture: date, description, amount, and whether it is a debit
-(withdrawal) or credit (deposit).
-
-STEP 6 — Download as PDF:
-Look for a "Download Transactions" link or icon near the top of the activity list — Wells Fargo typically shows this as a downward arrow or a "Download" text link.
-Click it. If a format dialog appears, select "PDF" and confirm. If PDF is not offered, look for "Statements & Documents" under the account menu, find the statement(s) covering the last 90 days, and download each as a PDF.
-Confirm the download so the file saves to the user's device.
-Wait for the download to complete before continuing.
-
-STEP 7 — Return output:
->>>>>>> 4fbbb2892c09c4067701c5441d921e83e5c46098
 ${OUTPUT_FORMAT}
     `.trim(),
   },
@@ -340,8 +266,6 @@ async function createSession(
 export async function createLoginNavigationTask(bank: string): Promise<string> {
   const config = BANK_CONFIGS[bank.toLowerCase()];
   if (!config) throw new Error(`Unsupported bank: ${bank}`);
-  // Short timeout — this task only loads a page and stops.
-  // keep_alive: true holds the browser open for Session B.
   return createSession(config.navigatePrompt, true, 120);
 }
 
