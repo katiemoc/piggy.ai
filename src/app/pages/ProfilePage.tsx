@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import {
   Bell, Shield, Download, Trash2, ChevronRight,
@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useTone, Tone } from '../context/ToneContext';
 import { useAuth } from '../auth';
+import { useTransactions } from '../hooks/useTransactions';
 
 const toneOptions: { id: Tone; emoji: string; label: string }[] = [
   { id: 'immigrant', emoji: '😤', label: 'Immigrant Parent' },
@@ -14,13 +15,6 @@ const toneOptions: { id: Tone; emoji: string; label: string }[] = [
 ];
 
 const currencies = ['USD ($)', 'EUR (€)', 'GBP (£)', 'CAD (C$)', 'AUD (A$)', 'JPY (¥)'];
-
-const uploadHistory = [
-  { name: 'april_statement.csv', date: 'Apr 3, 2026', size: '12 KB', transactions: 47 },
-  { name: 'march_credit.csv', date: 'Mar 31, 2026', size: '14 KB', transactions: 52 },
-  { name: 'february_statement.csv', date: 'Feb 28, 2026', size: '11 KB', transactions: 39 },
-  { name: 'january_statement.csv', date: 'Jan 31, 2026', size: '15 KB', transactions: 61 },
-];
 
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
@@ -41,8 +35,34 @@ export function ProfilePage() {
   const navigate = useNavigate();
   const { tone: preferredTone, setTone: setPreferredTone } = useTone();
   const { user, logout, updateUser } = useAuth();
+  const transactions = useTransactions();
+
+  const uploadHistory = useMemo(() => {
+    const byMonth: Record<string, { count: number; banks: Set<string>; dates: string[] }> = {};
+    for (const t of transactions) {
+      const key = t.date?.slice(0, 7);
+      if (!key) continue;
+      if (!byMonth[key]) byMonth[key] = { count: 0, banks: new Set(), dates: [] };
+      byMonth[key].count++;
+      if (t.bank) byMonth[key].banks.add(t.bank);
+      byMonth[key].dates.push(t.date);
+    }
+    return Object.entries(byMonth)
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([key, m]) => {
+        const [year, month] = key.split('-');
+        const label = new Date(Number(year), Number(month) - 1, 1)
+          .toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        const banks = [...m.banks].join(', ') || 'Manual Entry';
+        return { label, banks, count: m.count };
+      });
+  }, [transactions]);
+
   const [currency, setCurrency] = useState('USD ($)');
-  const [savingsTarget, setSavingsTarget] = useState(30);
+  const [savingsTarget, setSavingsTarget] = useState(() => {
+    const stored = localStorage.getItem('piggy_savings_target');
+    return stored ? Number(stored) : 30;
+  });
   const [editingName, setEditingName] = useState(false);
   const [name, setName] = useState(user?.name ?? 'User');
   const [nameInput, setNameInput] = useState(user?.name ?? 'User');
@@ -173,7 +193,7 @@ export function ProfilePage() {
                   max={60}
                   step={5}
                   value={savingsTarget}
-                  onChange={(e) => setSavingsTarget(Number(e.target.value))}
+                  onChange={(e) => { const v = Number(e.target.value); setSavingsTarget(v); localStorage.setItem('piggy_savings_target', String(v)); }}
                   className="w-full accent-[#57886c]"
                 />
                 <div className="flex justify-between text-xs text-[#5a5a5a] mt-0.5">
@@ -214,18 +234,22 @@ export function ProfilePage() {
               <CreditCard className="w-4 h-4 text-[#57886c]" />
               Upload History
             </h3>
-            <p className="text-xs text-[#5a5a5a] mb-4">All your past bank statement uploads</p>
-            <div className="flex flex-col gap-2">
-              {uploadHistory.map((u, i) => (
-                <div key={i} className="flex items-center justify-between p-3 bg-[#f5f5f0] rounded-lg">
-                  <div>
-                    <div className="text-sm">{u.name}</div>
-                    <div className="text-xs text-[#5a5a5a]">{u.date} · {u.size} · {u.transactions} transactions</div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-[#5a5a5a]" />
-                </div>
-              ))}
-            </div>
+            <p className="text-xs text-[#5a5a5a] mb-4">Months covered by your transaction data</p>
+            {uploadHistory.length === 0 ? (
+              <p className="text-sm text-[#5a5a5a]">No transactions yet.</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {uploadHistory.map((u, i) => (
+                  <button key={i} onClick={() => navigate('/history')} className="flex items-center justify-between p-3 bg-[#f5f5f0] rounded-lg hover:bg-[#e8e8e4] transition-colors text-left w-full">
+                    <div>
+                      <div className="text-sm">{u.label}</div>
+                      <div className="text-xs text-[#5a5a5a]">{u.banks} · {u.count} transactions</div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-[#5a5a5a]" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Data & Privacy — sign out removed from here */}

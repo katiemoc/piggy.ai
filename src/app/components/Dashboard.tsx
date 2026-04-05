@@ -30,16 +30,16 @@ export function Dashboard() {
         <div className="mb-8">
           <h2 className="text-2xl tracking-tight">Dashboard</h2>
           <p className="text-[#5a5a5a] text-sm mt-1">
-            April 2026 · {hasData ? `${transactions.length} transactions` : 'Sample Data'}
+            {hasData ? `${transactions.length} transactions` : 'No data yet — upload a statement or add manually'}
           </p>
         </div>
 
         {/* Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <StatsCard label="Income"       value={hasData ? fmt(income)   : '$8,450'}  trend="+12%" color="green"  />
-          <StatsCard label="Spent"        value={hasData ? fmt(expenses) : '$6,234'}  trend="+8%"  color="red"    />
-          <StatsCard label="Net"          value={hasData ? fmt(net)      : '$2,216'}  trend="+45%" color="green"  />
-          <StatsCard label="Savings Rate" value={hasData ? `${savingsRate}%` : '26.2%'} trend="+3%" color="yellow" />
+          <StatsCard label="Income"       value={fmt(income)}          trend="" color="green"  />
+          <StatsCard label="Spent"        value={fmt(expenses)}        trend="" color="red"    />
+          <StatsCard label="Net"          value={fmt(net)}             trend="" color="green"  />
+          <StatsCard label="Savings Rate" value={`${savingsRate}%`}   trend="" color="yellow" />
         </div>
 
         {/* Charts Row */}

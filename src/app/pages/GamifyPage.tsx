@@ -10,20 +10,15 @@ interface Goal {
   emoji: string;
 }
 
-const DEFAULT_GOALS: Goal[] = [
-  { id: 1, label: 'Emergency Fund', target: 18000, current: 7666, emoji: '🛡️' },
-  { id: 2, label: 'Vacation Fund', target: 3000, current: 1200, emoji: '✈️' },
-  { id: 3, label: 'New Laptop', target: 2000, current: 1850, emoji: '💻' },
-];
 
 const EMOJI_OPTIONS = ['🛡️', '✈️', '💻', '🏠', '🚗', '🎓', '💍', '🌴', '📱', '💊', '🐶', '🎸', '⚽', '🍕', '💰', '🚀'];
 
 function loadGoals(): Goal[] {
   try {
     const stored = localStorage.getItem('piggy_goals');
-    return stored ? JSON.parse(stored) : DEFAULT_GOALS;
+    return stored ? JSON.parse(stored) : [];
   } catch {
-    return DEFAULT_GOALS;
+    return [];
   }
 }
 
@@ -32,9 +27,9 @@ function saveGoals(goals: Goal[]) {
 }
 
 const achievements = [
-  { id: 2, emoji: '🐷', label: 'First Oink', desc: 'Uploaded your first bank statement', earned: true },
-  { id: 3, emoji: '💰', label: 'Saver Rookie', desc: 'Hit 20%+ savings rate', earned: true },
-  { id: 4, emoji: '📊', label: 'Data Nerd', desc: 'Checked dashboard 10 times', earned: true },
+  { id: 2, emoji: '🐷', label: 'First Oink', desc: 'Uploaded your first bank statement', earned: false },
+  { id: 3, emoji: '💰', label: 'Saver Rookie', desc: 'Hit 20%+ savings rate', earned: false },
+  { id: 4, emoji: '📊', label: 'Data Nerd', desc: 'Checked dashboard 10 times', earned: false },
   { id: 5, emoji: '🏆', label: 'Budget Boss', desc: 'Hit 30%+ savings rate', earned: false },
   { id: 6, emoji: '🚀', label: 'Escape Velocity', desc: 'Saved $10k total', earned: false },
   { id: 7, emoji: '💎', label: 'Diamond Pig', desc: 'Maintain 25%+ for 6 months', earned: false },
