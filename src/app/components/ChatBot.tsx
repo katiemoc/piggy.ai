@@ -291,22 +291,13 @@ export function ChatBot({ onClose }: ChatBotProps) {
     setMessages(updatedMessages);
     setThinking(true);
     try {
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
-      if (!apiKey) {
-         setMessages((prev) => [...prev, { id: uid(), role: 'bot', text: 'Error: Integration API Key is completely empty! Please ensure VITE_GEMINI_API_KEY is configured correctly.', ts: new Date() }]);
-         setThinking(false);
-         return;
-      }
-      
       const { sendGeminiChat } = await import('../services/geminiService');
       const hist = updatedMessages.slice(0, -1).map(m => ({
           role: (m.role === 'bot' ? 'model' : 'user') as 'model' | 'user',
           parts: [{ text: m.text }]
       }));
       
-      const instruction = `You are a brutally honest, no-nonsense financial assistant. Your persona is: ${config.name}. ${config.fallback} Use emojis like: ${config.emoji}`;
-      
-      const reply = await sendGeminiChat(hist, text, instruction, apiKey);
+      const reply = await sendGeminiChat(hist, text, tone);
       setMessages((prev) => [...prev, { id: uid(), role: 'bot', text: reply, ts: new Date() }]);
     } catch (err: any) {
       console.error("Gemini API Error in ChatBot:", err);

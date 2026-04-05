@@ -54,7 +54,7 @@ export const router = createBrowserRouter([
       { path: 'dashboard', Component: Dashboard },
       { path: 'ai', Component: AIPage },
       { path: 'history', Component: HistoryPage },
-      { path: 'gamify', Component: GamifyPage },
+      { path: 'goals', Component: GamifyPage },
       { path: 'profile', Component: ProfilePage },
     ],
   },

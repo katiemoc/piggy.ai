@@ -15,11 +15,7 @@ export interface DashboardData {
 
 const PIE_COLORS = ['#4285F4', '#34A853', '#FBBC05', '#EA4335', '#b05878', '#57886c', '#8e8e8e'];
 
-interface GeminiIntegrationProps {
-  apiKey: string;
-}
-
-export const GeminiAIView: React.FC<GeminiIntegrationProps> = ({ apiKey }) => {
+export const GeminiAIView: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [data, setData] = useState<DashboardData | null>(null);
@@ -42,15 +38,15 @@ export const GeminiAIView: React.FC<GeminiIntegrationProps> = ({ apiKey }) => {
   };
 
   const processPDF = async () => {
-    if (!file || !apiKey) {
-      setError("Please provide a PDF file and ensure your API key is set.");
+    if (!file) {
+      setError("Please provide a PDF file.");
       return;
     }
     setIsProcessing(true);
     setError(null);
     try {
       const base64Data = await fileToBase64(file);
-      const rawTxns = await parseBankStatementPDF(base64Data, apiKey);
+      const rawTxns = await parseBankStatementPDF(base64Data);
       
       const income = rawTxns.filter(t => t.type === 'credit').reduce((a, t) => a + t.amount, 0);
       const spent = rawTxns.filter(t => t.type === 'debit').reduce((a, t) => a + t.amount, 0);
@@ -79,14 +75,13 @@ export const GeminiAIView: React.FC<GeminiIntegrationProps> = ({ apiKey }) => {
   };
 
   const handleSendChat = async () => {
-    if (!chatInput.trim() || !apiKey) return;
+    if (!chatInput.trim()) return;
     const userMsg = chatInput.trim();
     setChatInput('');
     setMessages(prev => [...prev, { role: 'user', parts: [{ text: userMsg }] }]);
     setIsChatLoading(true);
     try {
-      const instruction = "You are a brutally honest, no-nonsense financial assistant named Piggy. Your role is to help the user understand their finances and mock them slightly if they overspend.";
-      const resp = await sendGeminiChat(messages, userMsg, instruction, apiKey);
+      const resp = await sendGeminiChat(messages, userMsg, 'immigrant');
       setMessages(prev => [...prev, { role: 'model', parts: [{ text: resp }] }]);
     } catch (err: any) {
       setMessages(prev => [...prev, { role: 'model', parts: [{ text: '⚠️ Error: Could not reach Gemini.' }] }]);
@@ -109,11 +104,7 @@ export const GeminiAIView: React.FC<GeminiIntegrationProps> = ({ apiKey }) => {
           </div>
         </div>
 
-        {!apiKey && (
-          <div className="mb-6 p-4 bg-[#fcc82d]/10 border border-[#fcc82d]/30 rounded-xl text-sm text-[#8c6d1f] font-medium">
-            Please make sure you pass a valid Gemini API Key to this component.
-          </div>
-        )}
+
 
         {error && (
           <div className="mb-6 p-4 bg-[#c0392b]/10 border border-[#c0392b]/20 rounded-xl text-sm text-[#c0392b]">
@@ -135,7 +126,7 @@ export const GeminiAIView: React.FC<GeminiIntegrationProps> = ({ apiKey }) => {
             </div>
             <button
               onClick={processPDF}
-              disabled={!file || !apiKey || isProcessing}
+              disabled={!file || isProcessing}
               className="w-full bg-[#57886c] text-white px-6 py-3 rounded-lg hover:bg-[#466060] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isProcessing ? <><Loader2 className="w-5 h-5 animate-spin" /> Analyzing...</> : <>Extract Finances <ArrowRight className="w-5 h-5" /></>}
@@ -251,13 +242,13 @@ export const GeminiAIView: React.FC<GeminiIntegrationProps> = ({ apiKey }) => {
             value={chatInput}
             onChange={e => setChatInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSendChat()}
-            placeholder={apiKey ? "Ask something brutal..." : "API key required to chat"}
-            disabled={!apiKey || isChatLoading}
+            placeholder={"Ask something brutal..."}
+            disabled={isChatLoading}
             className="flex-1 bg-[#f5f5f0] border border-[#e0e0e0] rounded-full px-4 py-2 text-sm focus:outline-none focus:border-[#57886c] disabled:opacity-50 mr-2"
           />
           <button
             onClick={handleSendChat}
-            disabled={!chatInput.trim() || !apiKey || isChatLoading}
+            disabled={!chatInput.trim() || isChatLoading}
             className="w-10 h-10 bg-[#57886c] text-white rounded-full flex items-center justify-center hover:bg-[#466060] transition-colors disabled:bg-[#e0e0e0] shrink-0"
           >
             <Send className="w-4 h-4" />

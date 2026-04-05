@@ -21,7 +21,7 @@ router.post('/', async (req, res) => {
 
   try {
     const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       systemInstruction: `${BASE_PROMPT}\n\n${tonePrompts[tone] ?? tonePrompts.immigrant}`,
     });
 
@@ -45,6 +45,44 @@ router.post('/', async (req, res) => {
     console.error('Gemini error:', err);
     const msg = err?.message ?? String(err);
     res.status(500).json({ error: msg });
+  }
+});
+
+router.post('/parse-statement', async (req, res) => {
+  const { base64Pdf } = req.body;
+  if (!base64Pdf) return res.status(400).json({ error: 'PDF data is required' });
+
+  try {
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.5-flash',
+    });
+
+    const prompt = `You are a financial data extraction assistant. I will provide a bank statement PDF.
+Your job is to parse the statement and extract ALL transactions into a JSON array perfectly matching this format:
+[
+  {
+    "date": "2026-04-12",
+    "description": "Trader Joes",
+    "amount": 80.5,
+    "type": "debit",
+    "category": "Food & Dining",
+    "bank": "Uploaded PDF"
+  }
+]
+Valid types are strictly "debit" or "credit". Ensure proper category guessing.
+Provide ONLY the valid JSON, with absolutely no markdown formatting, backticks, or explanation.`;
+
+    const result = await model.generateContent([
+      { inlineData: { data: base64Pdf, mimeType: 'application/pdf' } },
+      prompt
+    ]);
+
+    const rawText = result.response.text();
+    const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+    res.json({ transactions: JSON.parse(cleanJson) });
+  } catch (err) {
+    console.error('Gemini Parse error:', err);
+    res.status(500).json({ error: err?.message || 'Failed to parse PDF' });
   }
 });
 

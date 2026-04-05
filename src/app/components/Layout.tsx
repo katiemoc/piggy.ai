@@ -22,9 +22,9 @@ function PigIcon({ className }: { className?: string }) {
 
 const navLinks = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', isPig: false },
-  { to: '/ai',        icon: Bot,             label: 'AI Analysis', isPig: false },
-  { to: '/history',   icon: Clock,           label: 'History',     isPig: false },
-  { to: '/gamify',    icon: null,            label: 'Goals',       isPig: true  },
+  { to: '/ai', icon: Bot, label: 'AI Analysis', isPig: false },
+  { to: '/history', icon: Clock, label: 'History', isPig: false },
+  { to: '/goals', icon: null, label: 'Goals', isPig: true },
 ];
 
 export function Layout() {
@@ -80,10 +80,9 @@ export function Layout() {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                  isActive
-                    ? 'bg-[#57886c]/15 text-[#57886c]'
-                    : 'text-[#5a5a5a] hover:bg-[#f5f5f0] hover:text-[#1a1a1a]'
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm ${isActive
+                  ? 'bg-[#57886c]/15 text-[#57886c]'
+                  : 'text-[#5a5a5a] hover:bg-[#f5f5f0] hover:text-[#1a1a1a]'
                 }`
               }
             >
@@ -102,11 +101,10 @@ export function Layout() {
           {/* Chat toggle */}
           <button
             onClick={() => setChatOpen((o) => !o)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm mt-0.5 ${
-              chatOpen
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm mt-0.5 ${chatOpen
                 ? 'bg-[#b05878]/15 text-[#b05878]'
                 : 'text-[#5a5a5a] hover:bg-[#f5f5f0] hover:text-[#1a1a1a]'
-            }`}
+              }`}
           >
             <MessageCircle className="w-4 h-4" />
             Piggy Chat
@@ -121,10 +119,9 @@ export function Layout() {
           <NavLink
             to="/profile"
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                isActive
-                  ? 'bg-[#57886c]/15 text-[#57886c]'
-                  : 'text-[#5a5a5a] hover:bg-[#f5f5f0] hover:text-[#1a1a1a]'
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive
+                ? 'bg-[#57886c]/15 text-[#57886c]'
+                : 'text-[#5a5a5a] hover:bg-[#f5f5f0] hover:text-[#1a1a1a]'
               }`
             }
           >
@@ -171,8 +168,7 @@ export function Layout() {
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `flex-1 flex flex-col items-center gap-1 py-2 text-xs transition-colors ${
-                isActive ? 'text-[#57886c]' : 'text-[#5a5a5a]'
+              `flex-1 flex flex-col items-center gap-1 py-2 text-xs transition-colors ${isActive ? 'text-[#57886c]' : 'text-[#5a5a5a]'
               }`
             }
           >
@@ -190,9 +186,8 @@ export function Layout() {
 
         <button
           onClick={() => setChatOpen((o) => !o)}
-          className={`flex-1 flex flex-col items-center gap-1 py-2 text-xs transition-colors ${
-            chatOpen ? 'text-[#b05878]' : 'text-[#5a5a5a]'
-          }`}
+          className={`flex-1 flex flex-col items-center gap-1 py-2 text-xs transition-colors ${chatOpen ? 'text-[#b05878]' : 'text-[#5a5a5a]'
+            }`}
         >
           <MessageCircle className="w-5 h-5" />
           <span>Chat</span>
@@ -201,8 +196,7 @@ export function Layout() {
         <NavLink
           to="/profile"
           className={({ isActive }) =>
-            `flex-1 flex flex-col items-center gap-1 py-2 text-xs transition-colors ${
-              isActive ? 'text-[#57886c]' : 'text-[#5a5a5a]'
+            `flex-1 flex flex-col items-center gap-1 py-2 text-xs transition-colors ${isActive ? 'text-[#57886c]' : 'text-[#5a5a5a]'
             }`
           }
         >

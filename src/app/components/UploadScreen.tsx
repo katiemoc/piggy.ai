@@ -21,13 +21,8 @@ export function UploadScreen({ onUpload }: UploadScreenProps) {
     setIsProcessing(true);
     setError(null);
     try {
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
-      if (!apiKey) throw new Error("Gemini API Key is completely empty! Please ensure VITE_GEMINI_API_KEY is properly configured on your server.");
-      
-      console.log("Found API Key starting with:", apiKey.substring(0, 4));
-      
       const base64 = await fileToBase64(file);
-      const txns = await parseBankStatementPDF(base64, apiKey);
+      const txns = await parseBankStatementPDF(base64);
       saveTransactionsToStorage(txns);
       onUpload(false);
     } catch (err: any) {
