@@ -1,16 +1,50 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import type { Transaction } from '../services/browserUseService';
 
-const data = [
-  { name: 'Housing', value: 2100, color: '#3d85c8', id: 'housing' },
-  { name: 'Food', value: 850, color: '#e8924a', id: 'food' },
-  { name: 'Transport', value: 650, color: '#9b6b9b', id: 'transport' },
-  { name: 'Entertainment', value: 480, color: '#4db6ac', id: 'entertainment' },
-  { name: 'Shopping', value: 720, color: '#e8c84a', id: 'shopping' },
-  { name: 'Healthcare', value: 340, color: '#e07b7b', id: 'healthcare' },
-  { name: 'Other', value: 1094, color: '#78909c', id: 'other' },
+const SAMPLE_DATA = [
+  { name: 'Housing',       value: 2100, color: '#3d85c8' },
+  { name: 'Food',          value: 850,  color: '#e8924a' },
+  { name: 'Transport',     value: 650,  color: '#9b6b9b' },
+  { name: 'Entertainment', value: 480,  color: '#4db6ac' },
+  { name: 'Shopping',      value: 720,  color: '#e8c84a' },
+  { name: 'Healthcare',    value: 340,  color: '#e07b7b' },
+  { name: 'Other',         value: 1094, color: '#78909c' },
 ];
 
-export function SpendingChart() {
+const CATEGORY_COLORS: Record<string, string> = {
+  Housing:       '#3d85c8',
+  Food:          '#e8924a',
+  'Food & Dining': '#e8924a',
+  Transport:     '#9b6b9b',
+  Entertainment: '#4db6ac',
+  Shopping:      '#e8c84a',
+  Healthcare:    '#e07b7b',
+  Subscriptions: '#66bb6a',
+  Income:        '#57886c',
+  Transfer:      '#aaaaaa',
+  Other:         '#78909c',
+};
+
+interface Props {
+  transactions?: Transaction[];
+}
+
+export function SpendingChart({ transactions }: Props) {
+  const data = transactions && transactions.length > 0
+    ? Object.entries(
+        transactions
+          .filter(t => t.type === 'debit')
+          .reduce((acc, t) => {
+            acc[t.category] = (acc[t.category] || 0) + t.amount;
+            return acc;
+          }, {} as Record<string, number>)
+      ).map(([name, value]) => ({
+        name,
+        value: Math.round(value),
+        color: CATEGORY_COLORS[name] || '#78909c',
+      }))
+    : SAMPLE_DATA;
+
   return (
     <div className="bg-white border border-[#e0e0e0] rounded-lg p-6">
       <h3 className="text-lg mb-4">Spending by Category</h3>
@@ -26,8 +60,8 @@ export function SpendingChart() {
             dataKey="value"
             nameKey="name"
           >
-            {data.map((entry) => (
-              <Cell key={`cell-${entry.id}`} fill={entry.color} />
+            {data.map((entry, i) => (
+              <Cell key={`cell-${i}`} fill={entry.color} />
             ))}
           </Pie>
           <Tooltip
