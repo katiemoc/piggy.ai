@@ -20,7 +20,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function HomePageWrapper() {
   const navigate = useNavigate();
   return (
-    <div className="size-full bg-[#f5f5f0] text-[#1a1a1a]">
+    <div className="min-h-screen bg-[#f5f5f0] text-[#1a1a1a]">
       <UploadScreen onUpload={() => navigate('/dashboard')} />
     </div>
   );

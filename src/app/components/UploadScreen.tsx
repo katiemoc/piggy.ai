@@ -15,7 +15,7 @@ export function UploadScreen({ onUpload }: UploadScreenProps) {
   };
 
   return (
-    <div className="size-full flex items-center justify-center p-8">
+    <div className="min-h-screen flex items-center justify-center p-8">
       <div className="max-w-xl w-full flex flex-col items-center gap-8">
         <div className="text-center">
           <h1 className="text-5xl tracking-tight mb-2">
