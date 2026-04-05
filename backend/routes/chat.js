@@ -25,12 +25,19 @@ router.post('/', async (req, res) => {
       systemInstruction: `${BASE_PROMPT}\n\n${tonePrompts[tone] ?? tonePrompts.immigrant}`,
     });
 
-    const chat = model.startChat({
-      history: history.map(msg => ({
-        role: msg.role,
+    // Gemini requires history to alternate user/model, starting with user
+    const geminiHistory = history
+      .map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'model',
         parts: [{ text: msg.text }],
-      })),
-    });
+      }))
+      .filter((_, i, arr) => {
+        // Drop leading bot messages — history must start with user
+        if (i === 0 && arr[0].role === 'model') return false;
+        return true;
+      });
+
+    const chat = model.startChat({ history: geminiHistory });
 
     const result = await chat.sendMessage(message);
     res.json({ reply: result.response.text() });
