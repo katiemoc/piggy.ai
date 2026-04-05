@@ -177,8 +177,8 @@ export function GamifyPage() {
                 <div
                   key={a.id}
                   className={`flex flex-col items-center text-center p-3 rounded-lg border transition-colors ${a.earned
-                      ? 'bg-[#57886c]/10 border-[#57886c]/30'
-                      : 'bg-[#f5f5f0] border-[#e0e0e0] opacity-50'
+                    ? 'bg-[#57886c]/10 border-[#57886c]/30'
+                    : 'bg-[#f5f5f0] border-[#e0e0e0] opacity-50'
                     }`}
                 >
                   <div className={`text-2xl mb-1 ${!a.earned && 'grayscale'}`}>{a.emoji}</div>

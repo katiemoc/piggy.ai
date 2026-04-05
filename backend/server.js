@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import authRoutes from './routes/auth.js';
 import passport from 'passport';
 import googleRoutes from './routes/google.js';
+import chatRoutes from './routes/chat.js';
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ mongoose.connect(process.env.MONGO_URI)
   .catch((err) => console.log('MongoDB error:', err));
 
 app.use('/api/auth', authRoutes);
+app.use('/api/chat', chatRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Piggy AI backend running' });
