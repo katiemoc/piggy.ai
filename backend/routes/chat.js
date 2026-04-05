@@ -29,16 +29,28 @@ router.post('/parse-statement', upload.single('pdf'), async (req, res) => {
 Your job is to parse the statement and extract ALL transactions into a JSON array perfectly matching this format:
 [
   {
-    "date": "2026-04-12",
-    "description": "Trader Joes",
-    "amount": 80.5,
+    "date": "YYYY-MM-DD",
+    "description": "merchant or payee name",
+    "amount": 0.00,
     "type": "debit",
     "category": "Food & Dining",
     "bank": "Uploaded PDF"
   }
 ]
-Valid types are strictly "debit" or "credit". Ensure proper category guessing.
-Provide ONLY the valid JSON, with absolutely no markdown formatting, backticks, or explanation.`;
+Rules:
+- "type" must be exactly "debit" (money out) or "credit" (money in). Nothing else.
+- "amount" must be a positive number regardless of debit/credit.
+- "category" must be EXACTLY one of these 7 values — no other values allowed:
+  Food & Dining, Housing, Shopping, Transport, Subscriptions, Income, Other
+  Use these mappings:
+  - Groceries, supermarket, restaurant, cafe, coffee, food → Food & Dining
+  - Mortgage, rent, landlord, hydro, utilities, home → Housing
+  - Retail, electronics, clothing, department store, amazon → Shopping
+  - Gas, fuel, parking, transit, uber, lyft, auto → Transport
+  - Netflix, Spotify, streaming, gym, membership, software → Subscriptions
+  - Payroll, salary, direct deposit, income, paycheck → Income
+  - ATM, fees, insurance, transfer, cheque, bill payment, credit card payment → Other
+- Provide ONLY the valid JSON array, with absolutely no markdown, backticks, or explanation.`;
 
     const result = await model.generateContent([
       { inlineData: { data: base64Pdf, mimeType: 'application/pdf' } },
