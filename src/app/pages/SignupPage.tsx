@@ -99,9 +99,6 @@ export function SignupPage() {
     <div className="min-h-screen flex text-[#1a1a1a] bg-[#f5f5f0]">
       {/* ── Left branding panel (desktop only) ── */}
       <div className="hidden lg:flex lg:w-[44%] flex-col items-center justify-center p-12 relative overflow-hidden shrink-0">
-        <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-[#b05878]/8 blur-3xl" />
-        <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-[#57886c]/8 blur-3xl" />
-        <div className="absolute top-1/3 left-0 w-32 h-32 rounded-full bg-[#fcc82d]/10 blur-2xl" />
 
         {/* Pig mascot */}
         <div className="relative mb-6 drop-shadow-sm">
