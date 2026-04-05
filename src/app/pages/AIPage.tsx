@@ -95,7 +95,7 @@ export function AIPage() {
     analysis.score >= 70 ? '#57886c' : analysis.score >= 50 ? '#fbbf24' : '#c0392b';
 
   return (
-    <div className="p-6 max-w-4xl">
+    <div className="p-6 w-full">
       <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h2 className="text-2xl tracking-tight">AI Analysis</h2>
