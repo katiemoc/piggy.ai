@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router';
-import { LayoutDashboard, Bot, Clock, Gamepad2, User, Upload } from 'lucide-react';
+import { LayoutDashboard, Bot, Clock, User, Upload, LogOut } from 'lucide-react';
+import { useAuth } from '../auth';
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -31,6 +32,7 @@ const navLinks = [
 
 export function Layout() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   return (
     <div className="size-full flex bg-[#f5f5f0] text-[#1a1a1a]">
@@ -84,8 +86,8 @@ export function Layout() {
           ))}
         </nav>
 
-        {/* Profile link */}
-        <div className="p-3 border-t border-[#e0e0e0]">
+        {/* Profile + Logout */}
+        <div className="p-3 border-t border-[#e0e0e0] flex flex-col gap-1">
           <NavLink
             to="/profile"
             className={({ isActive }) =>
@@ -97,13 +99,20 @@ export function Layout() {
             }
           >
             <div className="w-7 h-7 rounded-full bg-[#57886c] flex items-center justify-center text-white text-xs shrink-0">
-              A
+              {user?.name?.[0]?.toUpperCase() ?? 'U'}
             </div>
             <div className="min-w-0">
-              <div className="text-[#1a1a1a] text-sm truncate">Alex Chen</div>
+              <div className="text-[#1a1a1a] text-sm truncate">{user?.name ?? 'Profile'}</div>
               <div className="text-xs text-[#5a5a5a]">View Profile</div>
             </div>
           </NavLink>
+          <button
+            onClick={() => { logout(); navigate('/login'); }}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#5a5a5a] hover:bg-[#f5f5f0] hover:text-[#c0392b] transition-colors w-full"
+          >
+            <LogOut className="w-4 h-4" />
+            Sign Out
+          </button>
         </div>
       </aside>
 
