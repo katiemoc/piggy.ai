@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Trophy, Target, Plus, Pencil, Trash2, X, Check } from 'lucide-react';
 
-const savingsRate = 26.2;
 
 interface Goal {
   id: number;
@@ -42,49 +41,6 @@ const achievements = [
   { id: 8, emoji: '🧠', label: 'Finance Genius', desc: 'FICO score above 780', earned: false },
 ];
 
-function PigMascot({ savingsRate }: { savingsRate: number }) {
-  const size = Math.min(180, 80 + savingsRate * 3.8);
-  const chonk = savingsRate / 100;
-
-  return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="relative" style={{ width: size, height: size }}>
-        <svg viewBox="0 0 100 100" width={size} height={size}>
-          <ellipse cx="50" cy="92" rx={30 + chonk * 8} ry="5" fill="#e0e0e0" />
-          <ellipse cx="50" cy={55 - chonk * 5} rx={32 + chonk * 12} ry={28 + chonk * 12} fill="#f8b4c8" />
-          <circle cx="50" cy={28 - chonk * 3} r={22 + chonk * 4} fill="#f8b4c8" />
-          <ellipse cx={32 - chonk * 2} cy={14 - chonk * 2} rx="8" ry="10" fill="#f8b4c8" />
-          <ellipse cx={68 + chonk * 2} cy={14 - chonk * 2} rx="8" ry="10" fill="#f8b4c8" />
-          <ellipse cx={32 - chonk * 2} cy={14 - chonk * 2} rx="5" ry="7" fill="#f4a0bc" />
-          <ellipse cx={68 + chonk * 2} cy={14 - chonk * 2} rx="5" ry="7" fill="#f4a0bc" />
-          <ellipse cx="50" cy={34 - chonk * 2} rx="10" ry="8" fill="#f4a0bc" />
-          <circle cx="47" cy={33 - chonk * 2} r="2.5" fill="#c87898" />
-          <circle cx="53" cy={33 - chonk * 2} r="2.5" fill="#c87898" />
-          <circle cx={43 - chonk} cy={23 - chonk * 2} r="2.5" fill="#2d2d2d" />
-          <circle cx={57 + chonk} cy={23 - chonk * 2} r="2.5" fill="#2d2d2d" />
-          <circle cx={43.8 - chonk} cy={22.2 - chonk * 2} r="0.8" fill="white" />
-          <circle cx={57.8 + chonk} cy={22.2 - chonk * 2} r="0.8" fill="white" />
-          <ellipse cx={38 - chonk} cy={27 - chonk * 2} rx="4" ry="2.5" fill="#f4a0bc" opacity="0.6" />
-          <ellipse cx={62 + chonk} cy={27 - chonk * 2} rx="4" ry="2.5" fill="#f4a0bc" opacity="0.6" />
-          <rect x={30 - chonk * 3} y={74 + chonk * 3} width={10 + chonk * 4} height="12" rx="5" fill="#f4a0bc" />
-          <rect x={60 + chonk * 3} y={74 + chonk * 3} width={10 + chonk * 4} height="12" rx="5" fill="#f4a0bc" />
-          <path d={`M ${78 + chonk * 6} ${55 - chonk * 3} Q 90 45 85 40 Q 80 35 86 30`} stroke="#f4a0bc" strokeWidth="3" fill="none" strokeLinecap="round" />
-          <rect x="44" y={42 - chonk * 3} width="12" height="2.5" rx="1" fill="#c87898" />
-        </svg>
-      </div>
-      <div className="text-center">
-        <div className="text-sm text-[#5a5a5a]">
-          {savingsRate < 10 && 'Hungry piggy 😰 — feed me savings!'}
-          {savingsRate >= 10 && savingsRate < 20 && 'Getting there... keep feeding! 🐷'}
-          {savingsRate >= 20 && savingsRate < 30 && 'Looking healthy! Nice work 😊'}
-          {savingsRate >= 30 && savingsRate < 40 && 'A chonky pig is a happy pig 🐷✨'}
-          {savingsRate >= 40 && 'MAXIMUM CHONK. Financial legend! 🏆'}
-        </div>
-        <div className="text-xs text-[#57886c] mt-1">Savings rate: {savingsRate}%</div>
-      </div>
-    </div>
-  );
-}
 
 interface GoalFormState {
   label: string;
@@ -267,33 +223,7 @@ export function GamifyPage() {
         <p className="text-[#5a5a5a] text-sm mt-1">Save more, grow your pig, unlock achievements</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Pig mascot */}
-        <div className="lg:col-span-1 flex flex-col gap-6">
-          <div className="bg-white border border-[#e0e0e0] rounded-lg p-6 flex flex-col items-center gap-4">
-            <h3 className="text-base self-start">Your Piggy</h3>
-            <PigMascot savingsRate={savingsRate} />
-            <div className="w-full">
-              <div className="flex justify-between text-xs text-[#5a5a5a] mb-1">
-                <span>Chonk level</span>
-                <span>{savingsRate}%</span>
-              </div>
-              <div className="w-full bg-[#e0e0e0] rounded-full h-2">
-                <div
-                  className="h-2 rounded-full bg-[#57886c] transition-all"
-                  style={{ width: `${Math.min(savingsRate / 40 * 100, 100)}%` }}
-                />
-              </div>
-              <div className="flex justify-between text-xs text-[#5a5a5a] mt-1">
-                <span>Skinny</span>
-                <span>Max Chonk (40%+)</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right: Goals + Achievements */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
+      <div className="flex flex-col gap-6">
           {/* Savings Goals */}
           <div className="bg-white border border-[#e0e0e0] rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
@@ -425,7 +355,6 @@ export function GamifyPage() {
               ))}
             </div>
           </div>
-        </div>
       </div>
     </div>
   );
