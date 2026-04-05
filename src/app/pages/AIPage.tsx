@@ -80,9 +80,9 @@ const analyses: Record<Tone, {
 };
 
 const toneLabels: Record<Tone, { emoji: string; label: string }> = {
-  immigrant:   { emoji: '😤', label: 'Immigrant Parent' },
-  financebro:  { emoji: '📈', label: 'Finance Bro' },
-  bestie:      { emoji: '💕', label: 'Supportive Bestie' },
+  immigrant: { emoji: '😤', label: 'Immigrant Parent' },
+  financebro: { emoji: '📈', label: 'Finance Bro' },
+  bestie: { emoji: '💕', label: 'Supportive Bestie' },
 };
 
 export function AIPage() {
@@ -211,11 +211,11 @@ export function AIPage() {
             <div className="text-xs text-[#5a5a5a] mt-1">Good range</div>
             <div className="mt-3 w-full">
               {[
-                { label: 'Poor',       color: '#c0392b', range: '300–579' },
-                { label: 'Fair',       color: '#e8924a', range: '580–669' },
-                { label: 'Good',       color: '#fbbf24', range: '670–739' },
-                { label: 'Very Good',  color: '#81a684', range: '740–799' },
-                { label: 'Exceptional',color: '#57886c', range: '800–850' },
+                { label: 'Poor', color: '#c0392b', range: '300–579' },
+                { label: 'Fair', color: '#e8924a', range: '580–669' },
+                { label: 'Good', color: '#fbbf24', range: '670–739' },
+                { label: 'Very Good', color: '#81a684', range: '740–799' },
+                { label: 'Exceptional', color: '#57886c', range: '800–850' },
               ].map((band) => (
                 <div key={band.label} className="flex items-center gap-2 mb-1">
                   <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: band.color }} />
@@ -228,11 +228,11 @@ export function AIPage() {
             <p className="text-sm text-[#1a1a1a] mb-4">{analysis.fico}</p>
             <div className="flex flex-col gap-2">
               {[
-                { factor: 'Payment History',    pct: 35, score: 'On time ✓',      good: true  },
+                { factor: 'Payment History', pct: 35, score: 'On time ✓', good: true },
                 { factor: 'Credit Utilization', pct: 30, score: '42% — too high', good: false },
-                { factor: 'Credit Age',         pct: 15, score: '4.2 years avg',  good: true  },
-                { factor: 'Credit Mix',         pct: 10, score: 'Cards + loan ✓', good: true  },
-                { factor: 'New Inquiries',      pct: 10, score: '1 recent',       good: true  },
+                { factor: 'Credit Age', pct: 15, score: '4.2 years avg', good: true },
+                { factor: 'Credit Mix', pct: 10, score: 'Cards + loan ✓', good: true },
+                { factor: 'New Inquiries', pct: 10, score: '1 recent', good: true },
               ].map((f) => (
                 <div key={f.factor} className="flex items-center gap-3">
                   <div className="text-xs text-[#5a5a5a] w-32 shrink-0">{f.factor} ({f.pct}%)</div>
