@@ -1,22 +1,59 @@
-import { Upload } from 'lucide-react';
+import { useState } from 'react';
+import { Upload, Loader2 } from 'lucide-react';
 import { PigMascot } from './PigMascot';
+import { fileToBase64 } from '../utils/geminiFileUtils';
+import { parseBankStatementPDF } from '../services/geminiService';
+import { saveTransactionsToStorage } from '../services/browserUseService';
 
 interface UploadScreenProps {
   onUpload: (useSample: boolean) => void;
 }
 
 export function UploadScreen({ onUpload }: UploadScreenProps) {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
   };
 
+  const processFile = async (file: File) => {
+    setIsProcessing(true);
+    setError(null);
+    try {
+      const base64 = await fileToBase64(file);
+      const txns = await parseBankStatementPDF(base64);
+      saveTransactionsToStorage(txns);
+      onUpload(false);
+    } catch (err: any) {
+      console.error('Gemini Upload Parser Error:', err);
+      setError(err.message || 'Failed to parse PDF');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    onUpload(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processFile(file);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processFile(file);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8">
+    <div className="min-h-screen flex items-center justify-center p-8 relative">
+      {isProcessing && (
+        <div className="absolute inset-0 bg-[#f5f5f0]/80 flex flex-col items-center justify-center z-10 backdrop-blur-sm">
+          <Loader2 className="w-12 h-12 text-[#57886c] animate-spin mb-4" />
+          <div className="text-xl">Extracting financial data...</div>
+          <div className="text-sm text-[#5a5a5a] mt-2">Piggy AI is reading your statements</div>
+        </div>
+      )}
+
       <div className="max-w-xl w-full flex flex-col items-center gap-8">
         <div className="flex flex-col items-center">
           <PigMascot width={100} />
@@ -25,6 +62,12 @@ export function UploadScreen({ onUpload }: UploadScreenProps) {
           </h1>
           <p className="text-[#5a5a5a]">your brutally honest financial twin</p>
         </div>
+
+        {error && (
+          <div className="text-[#c0392b] bg-[#c0392b]/10 border border-[#c0392b]/20 px-4 py-3 rounded-lg w-full text-center text-sm">
+            {error}
+          </div>
+        )}
 
         <div
           className="w-full border-2 border-dashed border-[#d0d0d0] rounded-lg p-12 flex flex-col items-center justify-center gap-4 hover:border-[#57886c] transition-colors cursor-pointer bg-white"
@@ -42,7 +85,7 @@ export function UploadScreen({ onUpload }: UploadScreenProps) {
             type="file"
             accept=".pdf"
             className="hidden"
-            onChange={() => onUpload(false)}
+            onChange={handleChange}
           />
         </div>
 
