@@ -43,7 +43,8 @@ router.post('/', async (req, res) => {
     res.json({ reply: result.response.text() });
   } catch (err) {
     console.error('Gemini error:', err);
-    res.status(500).json({ error: 'Failed to get response from Piggy' });
+    const msg = err?.message ?? String(err);
+    res.status(500).json({ error: msg });
   }
 });
 

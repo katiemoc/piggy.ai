@@ -305,8 +305,12 @@ export function ChatBot({ onClose }: ChatBotProps) {
         }),
       });
       const data = await res.json();
-      const reply = data.reply ?? 'Hmm, something went wrong. Try again!';
-      setMessages((prev) => [...prev, { id: uid(), role: 'bot', text: reply, ts: new Date() }]);
+      if (!res.ok || !data.reply) {
+        const errText = data.error ?? `Server error ${res.status}`;
+        setMessages((prev) => [...prev, { id: uid(), role: 'bot', text: `Error: ${errText}`, ts: new Date() }]);
+        return;
+      }
+      setMessages((prev) => [...prev, { id: uid(), role: 'bot', text: data.reply, ts: new Date() }]);
     } catch {
       setMessages((prev) => [...prev, { id: uid(), role: 'bot', text: 'Connection error — try again in a moment!', ts: new Date() }]);
     } finally {
