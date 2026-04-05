@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router';
 import { PigMascot } from './PigMascot';
 import { parseBankStatementPDF } from '../services/geminiService';
 import { saveTransactionsToStorage } from '../services/browserUseService';
@@ -9,6 +10,7 @@ interface UploadScreenProps {
 }
 
 export function UploadScreen({ onUpload }: UploadScreenProps) {
+  const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -98,6 +100,13 @@ export function UploadScreen({ onUpload }: UploadScreenProps) {
             <span>Add Manually</span>
           </button>
         </div>
+
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="text-sm text-[#5a5a5a] hover:text-[#1a1a1a] transition-colors"
+        >
+          Skip for now →
+        </button>
       </div>
     </div>
   );
