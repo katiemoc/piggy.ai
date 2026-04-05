@@ -110,6 +110,17 @@ export async function getTaskStatus(sessionId: string): Promise<SessionStatus> {
   };
 }
 
+export async function stopTask(sessionId: string): Promise<void> {
+  try {
+    await fetch(`${BU_API}/sessions/${sessionId}`, {
+      method: "DELETE",
+      headers,
+    });
+  } catch {
+    // best-effort — don't throw if cleanup fails
+  }
+}
+
 export async function pollUntilDone(
   sessionId: string,
   onUpdate: (status: SessionStatus) => void,

@@ -1,10 +1,10 @@
 // src/components/GatherStatements.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, Building2, Loader2, CheckCircle2, ExternalLink, AlertCircle } from "lucide-react";
 import {
   createBankTask, pollUntilDone, stopTask,
   parseTransactions, saveTransactionsToStorage,
-  transactionsToCSV, type TaskStatus, type Transaction
+  transactionsToCSV, type SessionStatus, type Transaction
 } from "../services/browserUseService";
 
 const SUPPORTED_BANKS = [
@@ -20,7 +20,7 @@ type Step = "select" | "running" | "done";
 interface BankTaskState {
   bank: string;
   taskId?: string;
-  status: TaskStatus["status"] | "pending" | "extracting";
+  status: SessionStatus["status"] | "pending" | "extracting";
   liveUrl?: string;
   transactions: Transaction[];
   error?: string;
@@ -32,6 +32,14 @@ export default function GatherStatements({ onClose }: { onClose: () => void }) {
   const [bankTasks, setBankTasks] = useState<BankTaskState[]>([]);
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   const [activeLiveUrl, setActiveLiveUrl] = useState<string | null>(null);
+  const activeSessionRef = useRef<string | null>(null);
+
+  // Stop any active session when the component unmounts
+  useEffect(() => {
+    return () => {
+      if (activeSessionRef.current) stopTask(activeSessionRef.current);
+    };
+  }, []);
 
   const toggleBank = (id: string) => {
     setSelectedBanks(prev =>
@@ -52,9 +60,11 @@ export default function GatherStatements({ onClose }: { onClose: () => void }) {
     for (let i = 0; i < selectedBanks.length; i++) {
       const bank = selectedBanks[i];
 
+      let taskId: string | undefined;
       try {
         // Create task
-        const taskId = await createBankTask(bank);
+        taskId = await createBankTask(bank);
+        activeSessionRef.current = taskId;
         setBankTasks(prev => prev.map(t =>
           t.bank === bank ? { ...t, taskId, status: "running" } : t
         ));
@@ -70,6 +80,8 @@ export default function GatherStatements({ onClose }: { onClose: () => void }) {
           if (status.liveUrl) setActiveLiveUrl(status.liveUrl);
         });
 
+        activeSessionRef.current = null;
+
         // Parse output
         const txns = parseTransactions(finalStatus.output || "", bank);
         setBankTasks(prev => prev.map(t =>
@@ -80,6 +92,9 @@ export default function GatherStatements({ onClose }: { onClose: () => void }) {
         setAllTransactions(prev => [...prev, ...txns]);
 
       } catch (err: any) {
+        // Stop the session so it doesn't count against the concurrent limit
+        if (taskId) stopTask(taskId);
+        activeSessionRef.current = null;
         setBankTasks(prev => prev.map(t =>
           t.bank === bank ? { ...t, status: "failed", error: err.message } : t
         ));
