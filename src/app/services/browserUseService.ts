@@ -220,6 +220,75 @@ export function transactionsToCSV(transactions: Transaction[]): string {
   return [header, ...rows].join("\n");
 }
 
+// ── Test utilities ────────────────────────────────────────────────────────────
+
+// Validates step 1 (session launch) only — navigates to a harmless public page
+export async function createSessionLaunchTest(): Promise<string> {
+  const response = await fetch(`${BU_API}/sessions`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      task: `Go to https://example.com and confirm the page title contains "Example Domain". Then stop.`,
+    }),
+  });
+  if (!response.ok) throw new Error(`Session launch failed (${response.status}): ${await response.text()}`);
+  const data = await response.json();
+  return data.id;
+}
+
+// Validates steps 1–4 (launch → login → navigate → download) using a public test site.
+// Credentials are public and intentionally shared — no real account involved.
+export async function createDemoLoginTask(): Promise<string> {
+  const response = await fetch(`${BU_API}/sessions`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      task: `
+        Go to https://the-internet.herokuapp.com/login.
+        Fill the username field with "tomsmith".
+        Fill the password field with "SuperSecretPassword!".
+        Click the login button.
+        Confirm the page shows "Secure Area" — this validates post-login navigation.
+        Then go to https://the-internet.herokuapp.com/download.
+        Click on any .csv file to download it.
+        Extract the text content of the downloaded file and return it as the output.
+      `.trim(),
+    }),
+  });
+  if (!response.ok) throw new Error(`Demo task failed (${response.status}): ${await response.text()}`);
+  const data = await response.json();
+  return data.id;
+}
+
+// Validates step 5 (CSV ingestion) with no BrowserUse needed.
+// Pass any CSV string — it goes through the same parse + save pipeline as real data.
+export const SAMPLE_CSV = `date,description,amount,type,category,bank
+2026-01-03,Paycheck Direct Deposit,4200.00,credit,Income,Test Bank
+2026-01-05,Whole Foods Market,89.45,debit,Food & Dining,Test Bank
+2026-01-07,Netflix,15.99,debit,Subscriptions,Test Bank
+2026-01-09,Shell Gas Station,52.10,debit,Transport,Test Bank
+2026-01-11,Amazon Purchase,134.00,debit,Shopping,Test Bank
+2026-01-14,Rent Payment,1500.00,debit,Housing,Test Bank
+2026-01-28,Freelance Payment,800.00,credit,Income,Test Bank`;
+
+export function ingestCSVString(csv: string, bank = "Test Bank"): Transaction[] {
+  const lines = csv.trim().split("\n");
+  const headers = lines[0].split(",");
+  return lines.slice(1).map((line) => {
+    const values = line.split(",");
+    const row: Record<string, string> = {};
+    headers.forEach((h, i) => { row[h.trim()] = (values[i] ?? "").trim(); });
+    return {
+      date: row.date || "",
+      description: row.description || "",
+      amount: Math.abs(parseFloat(row.amount) || 0),
+      type: row.type === "credit" ? "credit" : "debit",
+      category: row.category || categorize(row.description || ""),
+      bank: row.bank || bank,
+    };
+  });
+}
+
 export function saveTransactionsToStorage(transactions: Transaction[]): void {
   const existing: Transaction[] = JSON.parse(
     localStorage.getItem("piggy_transactions") || "[]"
