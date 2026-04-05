@@ -22,14 +22,6 @@ const uploadHistory = [
   { name: 'january_statement.csv', date: 'Jan 31, 2026', size: '15 KB', transactions: 61 },
 ];
 
-const healthHistory = [
-  { month: 'Apr 2026', score: 62, color: '#fbbf24' },
-  { month: 'Mar 2026', score: 55, color: '#fbbf24' },
-  { month: 'Feb 2026', score: 68, color: '#fbbf24' },
-  { month: 'Jan 2026', score: 45, color: '#c0392b' },
-  { month: 'Dec 2025', score: 38, color: '#c0392b' },
-  { month: 'Nov 2025', score: 72, color: '#57886c' },
-];
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
   return (
@@ -65,7 +57,6 @@ export function ProfilePage() {
     setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const avgScore = Math.round(healthHistory.reduce((a, b) => a + b.score, 0) / healthHistory.length);
 
   return (
     <div className="p-6 w-full">
@@ -119,31 +110,6 @@ export function ProfilePage() {
             </button>
           </div>
 
-          {/* Financial health score */}
-          <div className="bg-white border border-[#e0e0e0] rounded-lg p-6">
-            <h3 className="text-base mb-4 flex items-center gap-2">
-              <Target className="w-4 h-4 text-[#57886c]" />
-              Health Score History
-            </h3>
-            <div className="text-center mb-4">
-              <div className="text-4xl text-[#fbbf24]">{avgScore}</div>
-              <div className="text-xs text-[#5a5a5a]">6-month average</div>
-            </div>
-            <div className="flex flex-col gap-2">
-              {healthHistory.map((h) => (
-                <div key={h.month} className="flex items-center gap-3">
-                  <div className="text-xs text-[#5a5a5a] w-20 shrink-0">{h.month}</div>
-                  <div className="flex-1 h-1.5 bg-[#e0e0e0] rounded-full">
-                    <div
-                      className="h-1.5 rounded-full transition-all"
-                      style={{ width: `${h.score}%`, backgroundColor: h.color }}
-                    />
-                  </div>
-                  <div className="text-xs w-6 text-right shrink-0" style={{ color: h.color }}>{h.score}</div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Right column */}
