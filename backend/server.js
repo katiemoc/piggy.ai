@@ -18,7 +18,7 @@ app.use(cors({
   origin: ['http://localhost:5173', 'https://piggy-ai.tech'],
   credentials: true,
 }));
-app.use(express.json());
+app.use(express.json({ limit: '20mb' }));
 app.use(passport.initialize());
 app.use('/api/auth/google', googleRoutes);
 
