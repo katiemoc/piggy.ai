@@ -19,7 +19,7 @@ Return ONLY a raw JSON array (no markdown, no explanation) in this exact shape:
     "description": "merchant or payee name",
     "amount": 0.00,
     "type": "debit" or "credit",
-    "category": "one of: Food & Dining, Shopping, Transport, Housing, Subscriptions, Income, Transfer, Other"
+    "category": "one of: Food & Dining, Shopping, Transport, Housing, Subscriptions, Income, Other"
   }
 ]
 Include ALL transactions found. Positive amounts only — use "type" to distinguish debits vs credits.
@@ -321,13 +321,12 @@ export function parseTransactions(output: string, bank: string): Transaction[] {
 
 function categorize(description: string): string {
   const d = description.toLowerCase();
-  if (/uber|lyft|bart|muni|gas|shell|chevron/.test(d)) return "Transport";
-  if (/amazon|walmart|target|costco/.test(d)) return "Shopping";
-  if (/restaurant|mcdonald|chipotle|doordash|grubhub|coffee|starbucks/.test(d)) return "Food & Dining";
-  if (/netflix|spotify|hulu|apple|disney/.test(d)) return "Subscriptions";
-  if (/rent|apartment|landlord/.test(d)) return "Housing";
-  if (/venmo|zelle|transfer/.test(d)) return "Transfer";
-  if (/paycheck|salary|deposit|income/.test(d)) return "Income";
+  if (/paycheck|salary|direct deposit|income|freelance/.test(d)) return "Income";
+  if (/rent|apartment|landlord|mortgage/.test(d)) return "Housing";
+  if (/restaurant|mcdonald|chipotle|doordash|grubhub|coffee|starbucks|cafe|diner|sushi|pizza|taco/.test(d)) return "Food & Dining";
+  if (/uber|lyft|bart|muni|metro|gas|shell|chevron|exxon|bp|parking|transit/.test(d)) return "Transport";
+  if (/amazon|walmart|target|costco|ebay|etsy|shop|store/.test(d)) return "Shopping";
+  if (/netflix|spotify|hulu|apple|disney|youtube|prime|subscription/.test(d)) return "Subscriptions";
   return "Other";
 }
 
