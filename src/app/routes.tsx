@@ -8,6 +8,7 @@ import { GamifyPage } from './pages/GamifyPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
+import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { useAuth } from './auth';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -37,6 +38,10 @@ export const router = createBrowserRouter([
   {
     path: '/signup',
     Component: SignupPage,
+  },
+  {
+    path: '/auth/callback',
+    Component: AuthCallbackPage,
   },
   {
     path: '/upload',

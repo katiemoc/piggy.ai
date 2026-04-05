@@ -93,7 +93,7 @@ export function LoginPage() {
             {/* Social buttons */}
             <div className="flex gap-3 mb-6">
               <button
-                onClick={() => navigate('/upload')}
+                onClick={() => window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google`}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border border-[#e0e0e0] rounded-lg hover:bg-[#f5f5f0] transition-colors text-sm text-[#1a1a1a]"
               >
                 <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0" aria-label="Google">
