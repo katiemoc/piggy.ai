@@ -57,6 +57,12 @@ export function ProfilePage() {
     setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const handleClearData = () => {
+    localStorage.removeItem('piggy_transactions');
+    localStorage.removeItem('piggy_goals');
+    window.location.reload();
+  };
+
 
   return (
     <div className="p-6 w-full">
@@ -240,7 +246,7 @@ export function ProfilePage() {
                 </div>
                 <ChevronRight className="w-4 h-4 text-[#5a5a5a]" />
               </button>
-              <button className="flex items-center justify-between w-full p-3 bg-[#f5f5f0] rounded-lg hover:bg-[#e8e8e4] transition-colors">
+              <button onClick={handleClearData} className="flex items-center justify-between w-full p-3 bg-[#f5f5f0] rounded-lg hover:bg-[#e8e8e4] transition-colors">
                 <div className="flex items-center gap-3">
                   <Trash2 className="w-4 h-4 text-[#c0392b]" />
                   <div className="text-left">
