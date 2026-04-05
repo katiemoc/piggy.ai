@@ -8,6 +8,13 @@ import { GamifyPage } from './pages/GamifyPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
+import { useAuth } from './auth';
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isLoggedIn } = useAuth();
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
 
 function HomePageWrapper() {
   const navigate = useNavigate();
@@ -33,11 +40,11 @@ export const router = createBrowserRouter([
   },
   {
     path: '/upload',
-    Component: HomePageWrapper,
+    element: <ProtectedRoute><HomePageWrapper /></ProtectedRoute>,
   },
   {
     path: '/',
-    Component: Layout,
+    element: <ProtectedRoute><Layout /></ProtectedRoute>,
     children: [
       { path: 'dashboard', Component: Dashboard },
       { path: 'ai', Component: AIPage },

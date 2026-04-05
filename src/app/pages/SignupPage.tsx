@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router';
+import { useAuth } from '../auth';
 import { Eye, EyeOff, ArrowRight, Check } from 'lucide-react';
 
 function PasswordStrengthBar({ password }: { password: string }) {
@@ -46,6 +47,7 @@ function PasswordStrengthBar({ password }: { password: string }) {
 
 export function SignupPage() {
   const navigate = useNavigate();
+  const { signup } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -56,7 +58,7 @@ export function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     if (!name || !email || !password || !confirmPassword) {
@@ -64,7 +66,7 @@ export function SignupPage() {
       return;
     }
     if (password !== confirmPassword) {
-      setError('Passwords don\'t match.');
+      setError("Passwords don't match.");
       return;
     }
     if (password.length < 8) {
@@ -76,10 +78,14 @@ export function SignupPage() {
       return;
     }
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await signup(name, email, password);
       navigate('/upload');
-    }, 1000);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword;
