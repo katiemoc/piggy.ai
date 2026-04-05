@@ -15,44 +15,163 @@ const headers = {
   "X-Browser-Use-API-Key": API_KEY,
 };
 
+// Output format used by all bank prompts — must match Transaction interface
+const OUTPUT_FORMAT = `
+Return ONLY a raw JSON array (no markdown, no explanation) in this exact shape:
+[
+  {
+    "date": "YYYY-MM-DD",
+    "description": "merchant or payee name",
+    "amount": 0.00,
+    "type": "debit" or "credit",
+    "category": "one of: Food & Dining, Shopping, Transport, Housing, Subscriptions, Income, Transfer, Other"
+  }
+]
+Include ALL transactions found. Positive amounts only — use "type" to distinguish debits vs credits.
+If there are multiple pages of results, paginate through ALL of them before returning.
+`.trim();
+
 const BANK_INSTRUCTIONS: Record<string, string> = {
   citibank: `
-    Go to https://online.citibank.com.
-    Wait for the user to log in.
-    Navigate to statements or transaction history.
-    Find the last 3 months of transactions.
-    Extract transactions as JSON array:
-    [{date, description, amount, type, category}]
-  `,
+You are helping a user export their Citi bank transactions into piggy.ai, a personal finance app.
+
+STEP 1 — Navigate to login:
+Go to https://online.citibank.com/US/JPS/portal/Index.do
+Click "Sign On" in the top right corner.
+
+STEP 2 — Wait for the user:
+PAUSE and wait for the user to fully complete login, including any 2-step verification or OTP.
+Do NOT proceed until you see the account dashboard with account balances visible.
+
+STEP 3 — Find the right account:
+On the dashboard, locate the primary checking or savings account.
+Click on that account to open the transaction list.
+
+STEP 4 — Set the date range:
+Look for a "Date Range", "Search Transactions", or filter option.
+Set the start date to exactly 90 days ago from today and the end date to today.
+Apply the filter.
+
+STEP 5 — Extract all transactions:
+Scroll through all results. If there is a "Show More", "Next Page", or pagination control, click through every page until all 90 days of transactions are loaded.
+Extract every transaction row: date, description/merchant, amount, and whether it is a debit (money out) or credit (money in).
+
+STEP 6 — Return output:
+${OUTPUT_FORMAT}
+  `.trim(),
+
   chase: `
-    Go to https://chase.com and click "Sign In".
-    Wait for the user to log in.
-    Navigate to the main account transaction history.
-    Set range to last 90 days.
-    Extract transactions as JSON array:
-    [{date, description, amount, type, category}]
-  `,
+You are helping a user export their Chase bank transactions into piggy.ai, a personal finance app.
+
+STEP 1 — Navigate to login:
+Go to https://secure.chase.com/web/auth/dashboard
+If redirected, click "Sign In" in the top right corner.
+
+STEP 2 — Wait for the user:
+PAUSE and wait for the user to fully complete login, including any 2-factor authentication or push notification approval.
+Do NOT proceed until the Chase account dashboard is fully loaded and account tiles are visible.
+
+STEP 3 — Select the account:
+On the dashboard, click on the primary checking account (or the first account listed if multiple exist).
+This opens the transaction history for that account.
+
+STEP 4 — Set the date range:
+Click "Search or filter transactions" or the filter/calendar icon.
+Choose a custom date range: start date = 90 days ago, end date = today.
+Apply the filter.
+
+STEP 5 — Extract all transactions:
+Scroll down through the full list. If a "See more transactions" or load-more button appears, click it repeatedly until no more appear.
+Capture every transaction: posted date, description, amount, and debit vs credit.
+
+STEP 6 — Return output:
+${OUTPUT_FORMAT}
+  `.trim(),
+
   golden1: `
-    Go to https://www.golden1.com and click "Online Banking Login".
-    Wait for the user to log in.
-    Navigate to account activity.
-    Extract last 90 days of transactions as JSON array:
-    [{date, description, amount, type, category}]
-  `,
+You are helping a user export their Golden 1 Credit Union transactions into piggy.ai, a personal finance app.
+
+STEP 1 — Navigate to login:
+Go to https://www.golden1.com
+Click "Online Banking Login" in the top navigation bar.
+You will be redirected to the Golden 1 online banking portal.
+
+STEP 2 — Wait for the user:
+PAUSE and wait for the user to fully complete login, including any security questions or one-time passcode.
+Do NOT proceed until the account summary page with balances is visible.
+
+STEP 3 — Open transaction history:
+Click on the primary checking or savings account name to open its detail view.
+Look for an "Activity", "Transactions", or "Account History" tab and click it.
+
+STEP 4 — Set the date range:
+Find the date filter or search panel.
+Set the start date to 90 days ago and end date to today.
+Click "Search" or "Apply" to load the filtered results.
+
+STEP 5 — Extract all transactions:
+Scroll through all results. If there is a "Next" page or "Load More" option, click through every page until all transactions in the 90-day window are visible.
+Capture: date, description/merchant, amount, and whether each transaction is a debit or credit.
+
+STEP 6 — Return output:
+${OUTPUT_FORMAT}
+  `.trim(),
+
   "bank of america": `
-    Go to https://bankofamerica.com and click "Sign In".
-    Wait for the user to log in.
-    Navigate to the checking or savings account.
-    Extract last 90 days of transactions as JSON array:
-    [{date, description, amount, type, category}]
-  `,
+You are helping a user export their Bank of America transactions into piggy.ai, a personal finance app.
+
+STEP 1 — Navigate to login:
+Go to https://www.bankofamerica.com
+Click "Sign In" in the top right corner, then select "Online Banking".
+
+STEP 2 — Wait for the user:
+PAUSE and wait for the user to fully complete login, including any 2-step verification, Erica prompts, or security challenges.
+Do NOT proceed until the main accounts overview page is loaded and account balances are visible.
+
+STEP 3 — Open the account:
+Click on the primary checking account (labeled "Bank of America Advantage" or similar).
+This opens the account detail page with recent transactions.
+
+STEP 4 — Set the date range:
+Click on "Advanced Search" or the date range filter near the transaction list.
+Set the From date to 90 days ago and the To date to today.
+Click "Search" to apply.
+
+STEP 5 — Extract all transactions:
+Scroll through all results. Click "Next" or any pagination control to load additional pages until all transactions are captured.
+For each transaction capture: date posted, description, amount, and transaction type (debit/withdrawal vs credit/deposit).
+
+STEP 6 — Return output:
+${OUTPUT_FORMAT}
+  `.trim(),
+
   wells_fargo: `
-    Go to https://wellsfargo.com and click "Sign On".
-    Wait for the user to log in.
-    Navigate to account activity.
-    Extract last 90 days of transactions as JSON array:
-    [{date, description, amount, type, category}]
-  `,
+You are helping a user export their Wells Fargo transactions into piggy.ai, a personal finance app.
+
+STEP 1 — Navigate to login:
+Go to https://www.wellsfargo.com
+Click "Sign On" in the top right corner.
+
+STEP 2 — Wait for the user:
+PAUSE and wait for the user to fully complete sign-on, including any 2-step verification code sent by text or email.
+Do NOT proceed until the Wells Fargo account summary page with account balances is fully loaded.
+
+STEP 3 — Open the account:
+Click on the primary checking account from the account summary list.
+This opens the account activity page.
+
+STEP 4 — Set the date range:
+On the account activity page, look for "Date Range" or "Customize" options.
+Select a custom range: start date = 90 days ago, end date = today.
+Click "Update" or "Search" to apply.
+
+STEP 5 — Extract all transactions:
+Scroll through and paginate through ALL results — click "Next" or "More" until every transaction in the 90-day range has been loaded.
+For each transaction capture: date, description, amount, and whether it is a debit (withdrawal) or credit (deposit).
+
+STEP 6 — Return output:
+${OUTPUT_FORMAT}
+  `.trim(),
 };
 
 export interface Transaction {
