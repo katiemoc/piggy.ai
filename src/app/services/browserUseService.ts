@@ -1,6 +1,6 @@
 // src/services/browserUseService.ts
 
-const BU_API = "https://api.browser-use.com/api/v1";
+const BU_API = "https://api.browser-use.com/api/v2";
 const API_KEY = import.meta.env.VITE_BROWSER_USE_API_KEY;
 
 const headers = {
