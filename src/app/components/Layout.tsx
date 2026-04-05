@@ -22,7 +22,7 @@ function PigIcon({ className }: { className?: string }) {
 
 const navLinks = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/ai',        icon: Bot,             label: 'AI Analysis' },
+  { to: '/ai',        icon: Bot,             label: 'Piggy Chat' },
   { to: '/history',   icon: Clock,           label: 'History' },
   { to: '/gamify',    icon: null,            label: 'Goals', isPig: true },
 ];
@@ -30,13 +30,13 @@ const navLinks = [
 export function Layout() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const [showGather, setShowGather] = useState(false);                     {/* 👇 ADDED */}
+  const [showGather, setShowGather] = useState(false);
 
 
   return (
     <div className="size-full flex bg-[#f5f5f0] text-[#1a1a1a]">
       {/* Sidebar — desktop */}
-      <aside className="hidden md:flex flex-col w-56 bg-white border-r border-[#e0e0e0] shrink-0">
+      <aside className="hidden md:flex flex-col w-56 bg-white border-r border-[#e0e0e0] shrink-0 h-full">
         {/* Logo */}
         <div className="p-5 border-b border-[#e0e0e0]">
           <button onClick={() => navigate('/upload')} className="text-left flex items-center gap-2">

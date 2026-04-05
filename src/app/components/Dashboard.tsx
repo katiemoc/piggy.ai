@@ -2,7 +2,6 @@ import { useTransactions } from '../hooks/useTransactions';
 import { StatsCard } from './StatsCard';
 import { SpendingChart } from './SpendingChart';
 import { BalanceChart } from './BalanceChart';
-import { AIAnalysisPanel } from './AIAnalysisPanel';
 import { TransactionList } from './TransactionList';
 
 export function Dashboard() {
@@ -48,9 +47,6 @@ export function Dashboard() {
           <SpendingChart transactions={hasData ? transactions : undefined} />
           <BalanceChart  transactions={hasData ? transactions : undefined} />
         </div>
-
-        {/* AI Analysis Panel */}
-        <AIAnalysisPanel transactions={hasData ? transactions : undefined} />
 
         {/* Transaction List */}
         <TransactionList transactions={hasData ? transactions : undefined} />
