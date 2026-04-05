@@ -56,7 +56,13 @@ STEP 5 — Extract all transactions:
 Scroll through all results. If there is a "Show More", "Next Page", or pagination control, click through every page until all 90 days of transactions are loaded.
 Extract every transaction row: date, description/merchant, amount, and whether it is a debit (money out) or credit (money in).
 
-STEP 6 — Return output:
+STEP 6 — Download as PDF:
+Look for a "Download", "Export", or printer icon near the transaction list.
+If a format option appears, select "PDF". If not, look for a "View Statement" or "Print" option and use the browser's print-to-PDF feature (Ctrl+P / Cmd+P → Save as PDF).
+Confirm the download so the file saves to the user's device.
+Wait for the download to complete before continuing.
+
+STEP 7 — Return output:
 ${OUTPUT_FORMAT}
   `.trim(),
 
@@ -84,7 +90,14 @@ STEP 5 — Extract all transactions:
 Scroll down through the full list. If a "See more transactions" or load-more button appears, click it repeatedly until no more appear.
 Capture every transaction: posted date, description, amount, and debit vs credit.
 
-STEP 6 — Return output:
+STEP 6 — Download as PDF:
+Look for a download or print icon near the top of the transaction list (Chase typically shows a downward arrow icon labeled "Download").
+Click it and select "PDF" from the format options if prompted.
+If only CSV/other formats are available, look for a "Statements" section in the left sidebar and download the corresponding monthly statement as a PDF instead.
+Confirm the download so the file saves to the user's device.
+Wait for the download to complete before continuing.
+
+STEP 7 — Return output:
 ${OUTPUT_FORMAT}
   `.trim(),
 
@@ -113,7 +126,14 @@ STEP 5 — Extract all transactions:
 Scroll through all results. If there is a "Next" page or "Load More" option, click through every page until all transactions in the 90-day window are visible.
 Capture: date, description/merchant, amount, and whether each transaction is a debit or credit.
 
-STEP 6 — Return output:
+STEP 6 — Download as PDF:
+Look for a "Download", "Export", or "Print" button near the transaction list or account activity header.
+If a format selector appears, choose "PDF". If the only export option is CSV/OFX, alternatively navigate to "Statements" in the account menu and download the most recent statement(s) as PDF.
+If no direct PDF option exists, use Cmd+P / Ctrl+P → Save as PDF to print the current transaction view to a PDF file.
+Confirm the download so the file saves to the user's device.
+Wait for the download to complete before continuing.
+
+STEP 7 — Return output:
 ${OUTPUT_FORMAT}
   `.trim(),
 
@@ -141,7 +161,13 @@ STEP 5 — Extract all transactions:
 Scroll through all results. Click "Next" or any pagination control to load additional pages until all transactions are captured.
 For each transaction capture: date posted, description, amount, and transaction type (debit/withdrawal vs credit/deposit).
 
-STEP 6 — Return output:
+STEP 6 — Download as PDF:
+Look for the download icon (downward arrow) near the top right of the transaction list — Bank of America typically labels this "Download Transactions".
+Click it. If a format menu appears, select "PDF". If PDF is not an option, alternatively go to "Statements & Documents" in the top navigation, find the statement covering the last 90 days, and download it as a PDF.
+Confirm the download so the file saves to the user's device.
+Wait for the download to complete before continuing.
+
+STEP 7 — Return output:
 ${OUTPUT_FORMAT}
   `.trim(),
 
@@ -169,7 +195,13 @@ STEP 5 — Extract all transactions:
 Scroll through and paginate through ALL results — click "Next" or "More" until every transaction in the 90-day range has been loaded.
 For each transaction capture: date, description, amount, and whether it is a debit (withdrawal) or credit (deposit).
 
-STEP 6 — Return output:
+STEP 6 — Download as PDF:
+Look for a "Download Transactions" link or icon near the top of the activity list — Wells Fargo typically shows this as a downward arrow or a "Download" text link.
+Click it. If a format dialog appears, select "PDF" and confirm. If PDF is not offered, look for "Statements & Documents" under the account menu, find the statement(s) covering the last 90 days, and download each as a PDF.
+Confirm the download so the file saves to the user's device.
+Wait for the download to complete before continuing.
+
+STEP 7 — Return output:
 ${OUTPUT_FORMAT}
   `.trim(),
 };
