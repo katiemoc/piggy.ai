@@ -182,16 +182,6 @@ const toneConfig: Record<Tone, {
 };
 
 /* ─── Helpers ────────────────────────────────────────────────────────── */
-function getBotReply(input: string, tone: Tone): string {
-  const lower = input.toLowerCase();
-  const config = toneConfig[tone];
-  const match = config.responses.find((r) =>
-    r.keywords.some((kw) => lower.includes(kw))
-  );
-  if (match && Math.random() > 0.15) return match.reply;
-  return config.fallback;
-}
-
 function formatDate(d: Date): string {
   const now = new Date();
   const diff = now.getTime() - d.getTime();
@@ -292,18 +282,36 @@ export function ChatBot({ onClose }: ChatBotProps) {
   }, [messages, thinking, view, selectedSession]);
 
   /* ── Actions ── */
-  const send = () => {
+  const send = async () => {
     const text = input.trim();
     if (!text || thinking) return;
     setInput('');
     const userMsg: Message = { id: uid(), role: 'user', text, ts: new Date() };
-    setMessages((prev) => [...prev, userMsg]);
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
     setThinking(true);
-    setTimeout(() => {
-      const reply = getBotReply(text, tone);
+    try {
+      const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
+      const res = await fetch(`${API_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          tone,
+          history: updatedMessages.slice(0, -1).map((m) => ({
+            role: m.role === 'bot' ? 'model' : 'user',
+            text: m.text,
+          })),
+        }),
+      });
+      const data = await res.json();
+      const reply = data.reply ?? 'Hmm, something went wrong. Try again!';
       setMessages((prev) => [...prev, { id: uid(), role: 'bot', text: reply, ts: new Date() }]);
+    } catch {
+      setMessages((prev) => [...prev, { id: uid(), role: 'bot', text: 'Connection error — try again in a moment!', ts: new Date() }]);
+    } finally {
       setThinking(false);
-    }, 900 + Math.random() * 600);
+    }
   };
 
   const handleKey = (e: React.KeyboardEvent) => {
