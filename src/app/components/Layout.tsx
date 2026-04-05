@@ -1,13 +1,9 @@
+import { useState } from 'react';                                          {/* 👇 ADDED */}
 import { NavLink, Outlet, useNavigate } from 'react-router';
-import { LayoutDashboard, Bot, Clock, User, Upload, LogOut } from 'lucide-react';
+import { LayoutDashboard, Bot, Clock, User, Upload, LogOut, Database } from 'lucide-react';  {/* 👇 ADDED Database */}
 import { useAuth } from '../auth';
-
-const navItems = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/ai', icon: Bot, label: 'AI Analysis' },
-  { to: '/history', icon: Clock, label: 'History' },
-  { to: '/gamify', icon: 'Gamify', label: 'Goals' },
-];
+import { GatherStatements } from './GatherStatements';                     {/* 👇 ADDED */}
+import type { Transaction } from '../services/browserUseService';          {/* 👇 ADDED */}
 
 function PigIcon({ className }: { className?: string }) {
   return (
@@ -25,14 +21,20 @@ function PigIcon({ className }: { className?: string }) {
 
 const navLinks = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/ai', icon: Bot, label: 'AI Analysis' },
-  { to: '/history', icon: Clock, label: 'History' },
-  { to: '/gamify', icon: null, label: 'Goals', isPig: true },
+  { to: '/ai',        icon: Bot,             label: 'AI Analysis' },
+  { to: '/history',   icon: Clock,           label: 'History' },
+  { to: '/gamify',    icon: null,            label: 'Goals', isPig: true },
 ];
 
 export function Layout() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [showGather, setShowGather] = useState(false);                     {/* 👇 ADDED */}
+
+  const handleGatherComplete = (transactions: Transaction[]) => {          {/* 👇 ADDED */}
+    setShowGather(false);
+    navigate('/dashboard');
+  };
 
   return (
     <div className="size-full flex bg-[#f5f5f0] text-[#1a1a1a]">
@@ -48,14 +50,21 @@ export function Layout() {
           </button>
         </div>
 
-        {/* Upload CTA */}
-        <div className="p-3 border-b border-[#e0e0e0]">
+        {/* 👇 ADDED: Action buttons */}
+        <div className="p-3 border-b border-[#e0e0e0] flex flex-col gap-2">
+          <button
+            onClick={() => setShowGather(true)}
+            className="w-full flex items-center gap-2 px-3 py-2 bg-[#b05878] text-white rounded-lg hover:bg-[#8f3f60] transition-colors text-sm"
+          >
+            <Database className="w-4 h-4" />
+            Gather Statements
+          </button>
           <button
             onClick={() => navigate('/upload')}
-            className="w-full flex items-center gap-2 px-3 py-2 bg-[#57886c] text-white rounded-lg hover:bg-[#466060] transition-colors text-sm"
+            className="w-full flex items-center gap-2 px-3 py-2 bg-[#f5f5f0] border border-[#e0e0e0] text-[#5a5a5a] rounded-lg hover:border-[#57886c] hover:text-[#57886c] transition-colors text-sm"
           >
             <Upload className="w-4 h-4" />
-            New Upload
+            Upload CSV
           </button>
         </div>
 
@@ -144,6 +153,14 @@ export function Layout() {
             )}
           </NavLink>
         ))}
+        {/* 👇 ADDED: mobile import button */}
+        <button
+          onClick={() => setShowGather(true)}
+          className="flex-1 flex flex-col items-center gap-1 py-2 text-xs text-[#b05878]"
+        >
+          <Database className="w-5 h-5" />
+          <span>Import</span>
+        </button>
         <NavLink
           to="/profile"
           className={({ isActive }) =>
@@ -156,6 +173,19 @@ export function Layout() {
           <span>Profile</span>
         </NavLink>
       </nav>
+
+      {/* 👇 ADDED: Modal */}
+      {showGather && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowGather(false); }}
+        >
+          <GatherStatements
+            onComplete={handleGatherComplete}
+            onClose={() => setShowGather(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }
