@@ -25,7 +25,7 @@ export function UploadScreen({ onUpload }: UploadScreenProps) {
       onUpload(false);
     } catch (err: any) {
       console.error('Gemini Upload Parser Error:', err);
-      setError(err.message || 'Failed to parse PDF');
+      setError('This is not a valid file. Please upload a bank statement PDF.');
     } finally {
       setIsProcessing(false);
     }
