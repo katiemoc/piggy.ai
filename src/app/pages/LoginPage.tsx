@@ -6,7 +6,7 @@ import { useAuth } from '../auth';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, loginWithToken } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -104,6 +104,7 @@ export function LoginPage() {
                   const handler = (e: MessageEvent) => {
                     if (e.data?.type === 'google-auth-success') {
                       window.removeEventListener('message', handler);
+                      loginWithToken(e.data.token, e.data.user);
                       navigate('/upload');
                     }
                   };

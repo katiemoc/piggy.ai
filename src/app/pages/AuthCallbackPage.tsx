@@ -12,11 +12,14 @@ export function AuthCallbackPage() {
     const user = params.get('user');
 
     if (token && user) {
-      loginWithToken(token, JSON.parse(user));
+      const parsedUser = JSON.parse(user);
       if (window.opener) {
-        window.opener.postMessage({ type: 'google-auth-success' }, '*');
+        // Pass token + user so parent window can update its own React state
+        window.opener.postMessage({ type: 'google-auth-success', token, user: parsedUser }, '*');
         window.close();
       } else {
+        // Redirect flow (no popup) — set auth state directly
+        loginWithToken(token, parsedUser);
         navigate('/upload');
       }
     } else {
