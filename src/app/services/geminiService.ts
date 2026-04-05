@@ -3,12 +3,18 @@ import type { Transaction } from './browserUseService';
 const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
 
 export const parseBankStatementPDF = async (file: File): Promise<Transaction[]> => {
-  const formData = new FormData();
-  formData.append('pdf', file);
+  // Convert to base64 so we can send as JSON (avoids multipart CORS issues)
+  const base64Pdf = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve((reader.result as string).split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 
   const response = await fetch(`${API_URL}/api/chat/parse-statement`, {
     method: 'POST',
-    body: formData   // no Content-Type header — browser sets multipart boundary automatically
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ base64Pdf })
   });
 
   const data = await response.json();
