@@ -165,25 +165,17 @@ export function UploadScreen({ onUpload }: UploadScreenProps) {
             </button>
           )}
 
-          <div className="flex gap-3">
-            <button
-              onClick={() => onUpload(true)}
-              className="flex-1 bg-transparent border-2 border-[#d0d0d0] text-[#1a1a1a] px-6 py-3 rounded-lg hover:border-[#57886c] transition-colors"
-            >
-              Use Sample Data
-            </button>
-            <button
-              onClick={() => setShowManualEntry(true)}
-              className="flex-1 bg-transparent border-2 border-[#d0d0d0] text-[#1a1a1a] px-6 py-3 rounded-lg hover:border-[#57886c] transition-colors"
-            >
-              + Add Manually
-            </button>
-          </div>
+          <button
+            onClick={() => setShowManualEntry(true)}
+            className="w-full bg-[#57886c] text-white px-6 py-3 rounded-lg hover:bg-[#466060] transition-colors cursor-pointer"
+          >
+            + Add Manually
+          </button>
         </div>
 
         <button
           onClick={() => navigate('/dashboard')}
-          className="text-sm text-[#5a5a5a] hover:text-[#1a1a1a] transition-colors"
+          className="text-sm text-[#5a5a5a] hover:text-[#1a1a1a] transition-colors cursor-pointer"
         >
           Skip for now →
         </button>

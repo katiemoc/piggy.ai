@@ -240,13 +240,6 @@ export function GamifyPage() {
                 <div className="text-3xl">🎯</div>
                 <p className="text-sm text-[#5a5a5a]">No goals yet.</p>
                 <p className="text-xs text-[#b0b0b0]">Add your first savings goal to start tracking.</p>
-                <button
-                  onClick={() => setModal('add')}
-                  className="mt-1 flex items-center gap-1.5 text-sm text-[#57886c] hover:text-[#466060] px-3 py-2 rounded-lg hover:bg-[#f5f5f0] transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Goal
-                </button>
               </div>
             ) : (
               <div className="flex flex-col gap-5">
