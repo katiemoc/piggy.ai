@@ -21,12 +21,7 @@ export function StatsCard({ label, value, trend, color }: StatsCardProps) {
   return (
     <div className="bg-white border border-[#e0e0e0] rounded-lg p-4">
       <div className="text-[#5a5a5a] text-sm mb-2">{label}</div>
-      <div className="flex items-baseline justify-between">
-        <div className={`text-2xl ${colorClasses[color]}`}>{value}</div>
-        <div className={`text-sm px-2 py-1 rounded ${bgClasses[color]} ${colorClasses[color]}`}>
-          {trend}
-        </div>
-      </div>
+      <div className={`text-2xl ${colorClasses[color]}`}>{value}</div>
     </div>
   );
 }
