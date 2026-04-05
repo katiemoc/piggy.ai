@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
-import { LayoutDashboard, Bot, Clock, User, Upload, MessageCircle, LogOut } from 'lucide-react';
+import { LayoutDashboard, Bot, Clock, User, Upload, MessageCircle, LogOut, Database } from 'lucide-react';
 import { PigMascot } from './PigMascot';
+import GatherStatements from './GatherStatements';
 import { ChatBot } from './ChatBot';
 import { useAuth } from '../auth';
 
@@ -30,6 +31,7 @@ export function Layout() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [chatOpen, setChatOpen] = useState(false);
+  const [showGather, setShowGather] = useState(false);
 
   return (
     <div className="w-full h-screen overflow-hidden flex bg-[#f5f5f0] text-[#1a1a1a]">
@@ -52,8 +54,16 @@ export function Layout() {
           </button>
         </div>
 
-        {/* Upload CTA */}
-        <div className="p-3 border-b border-[#e0e0e0]">
+        {/* Action buttons */}
+        <div className="p-3 border-b border-[#e0e0e0] flex flex-col gap-2">
+          <button
+            onClick={() => setShowGather(true)}
+            className="w-full flex items-center gap-2 px-3 py-2 bg-[#b05878] text-white rounded-lg hover:bg-[#8f3f60] transition-colors text-sm"
+          >
+            <Database className="w-4 h-4" />
+            Gather Statements
+          </button>
+
           <button
             onClick={() => navigate('/upload')}
             className="w-full flex items-center gap-2 px-3 py-2 bg-[#57886c] text-white rounded-lg hover:bg-[#466060] transition-colors text-sm"
@@ -126,7 +136,7 @@ export function Layout() {
               <div className="text-xs text-[#5a5a5a]">View Profile</div>
             </div>
           </NavLink>
-          {/* Sign Out — directly under View Profile */}
+
           <button
             onClick={() => { logout(); navigate('/login'); }}
             className="flex items-center gap-3 w-full px-3 py-2 mt-0.5 rounded-lg text-sm text-[#5a5a5a] hover:bg-[#f5f5f0] hover:text-[#c0392b] transition-colors"
@@ -142,7 +152,7 @@ export function Layout() {
         <Outlet />
       </main>
 
-      {/* ── Chat panel (right side, NOT a popup — always mounted so history persists) ── */}
+      {/* ── Chat panel ── */}
       <div
         className={`
           flex flex-col border-l border-[#e0e0e0] bg-white
@@ -177,7 +187,7 @@ export function Layout() {
             )}
           </NavLink>
         ))}
-        {/* Chat toggle in mobile nav */}
+
         <button
           onClick={() => setChatOpen((o) => !o)}
           className={`flex-1 flex flex-col items-center gap-1 py-2 text-xs transition-colors ${
@@ -187,6 +197,7 @@ export function Layout() {
           <MessageCircle className="w-5 h-5" />
           <span>Chat</span>
         </button>
+
         <NavLink
           to="/profile"
           className={({ isActive }) =>
@@ -199,6 +210,16 @@ export function Layout() {
           <span>Profile</span>
         </NavLink>
       </nav>
+
+      {/* Modal */}
+      {showGather && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowGather(false); }}
+        >
+          <GatherStatements onClose={() => setShowGather(false)} />
+        </div>
+      )}
     </div>
   );
 }
