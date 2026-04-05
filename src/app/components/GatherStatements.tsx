@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Building2, Loader2, CheckCircle2, ExternalLink, AlertCircle } from "lucide-react";
 import {
-  createBankTask, pollUntilDone, stopTask,
+  createBankTask, createDemoLoginTask, pollUntilDone, stopTask,
   parseTransactions, saveTransactionsToStorage,
   transactionsToCSV, type SessionStatus, type Transaction
 } from "../services/browserUseService";
@@ -13,6 +13,7 @@ const SUPPORTED_BANKS = [
   { id: "golden1", name: "Golden 1 CU", logo: "🌻" },
   { id: "bank of america", name: "Bank of America", logo: "🏧" },
   { id: "wells_fargo", name: "Wells Fargo", logo: "🐴" },
+  { id: "__demo__", name: "Demo Bank", logo: "🧪" },
 ];
 
 type Step = "select" | "running" | "done";
@@ -63,7 +64,7 @@ export default function GatherStatements({ onClose }: { onClose: () => void }) {
       let taskId: string | undefined;
       try {
         // Create task
-        taskId = await createBankTask(bank);
+        taskId = bank === "__demo__" ? await createDemoLoginTask() : await createBankTask(bank);
         activeSessionRef.current = taskId;
         setBankTasks(prev => prev.map(t =>
           t.bank === bank ? { ...t, taskId, status: "running" } : t
@@ -165,15 +166,23 @@ export default function GatherStatements({ onClose }: { onClose: () => void }) {
                   key={bank.id}
                   onClick={() => toggleBank(bank.id)}
                   className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left
+                    ${bank.id === "__demo__" ? "col-span-2" : ""}
                     ${selectedBanks.includes(bank.id)
                       ? "border-[#57886c] bg-[#57886c]/10"
-                      : "border-[#e0e0e0] hover:border-[#57886c]/50"
+                      : bank.id === "__demo__"
+                        ? "border-dashed border-[#b0b0b0] hover:border-[#57886c]/50"
+                        : "border-[#e0e0e0] hover:border-[#57886c]/50"
                     }`}
                 >
                   <span className="text-2xl">{bank.logo}</span>
-                  <span className="text-sm font-medium text-gray-700 font-['Lexend']">
-                    {bank.name}
-                  </span>
+                  <div>
+                    <span className="text-sm font-medium text-gray-700 font-['Lexend']">
+                      {bank.name}
+                    </span>
+                    {bank.id === "__demo__" && (
+                      <p className="text-xs text-gray-400 mt-0.5">Test the full flow safely — no real credentials</p>
+                    )}
+                  </div>
                 </button>
               ))}
             </div>
