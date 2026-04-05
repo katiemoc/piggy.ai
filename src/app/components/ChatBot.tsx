@@ -291,26 +291,22 @@ export function ChatBot({ onClose }: ChatBotProps) {
     setMessages(updatedMessages);
     setThinking(true);
     try {
-      const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
-      const res = await fetch(`${API_URL}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: text,
-          tone,
-          history: updatedMessages.slice(0, -1).map((m) => ({
-            role: m.role === 'bot' ? 'model' : 'user',
-            text: m.text,
-          })),
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.reply) {
-        const errText = data.error ?? `Server error ${res.status}`;
-        setMessages((prev) => [...prev, { id: uid(), role: 'bot', text: `Error: ${errText}`, ts: new Date() }]);
-        return;
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+      if (!apiKey) {
+         setMessages((prev) => [...prev, { id: uid(), role: 'bot', text: 'Error: Missing VITE_GEMINI_API_KEY in .env', ts: new Date() }]);
+         return;
       }
-      setMessages((prev) => [...prev, { id: uid(), role: 'bot', text: data.reply, ts: new Date() }]);
+      
+      const { sendGeminiChat } = await import('../services/geminiService');
+      const hist = updatedMessages.slice(0, -1).map(m => ({
+          role: (m.role === 'bot' ? 'model' : 'user') as 'model' | 'user',
+          parts: [{ text: m.text }]
+      }));
+      
+      const instruction = `You are a brutally honest, no-nonsense financial assistant. Your persona is: ${config.name}. ${config.fallback} Use emojis like: ${config.emoji}`;
+      
+      const reply = await sendGeminiChat(hist, text, instruction, apiKey);
+      setMessages((prev) => [...prev, { id: uid(), role: 'bot', text: reply, ts: new Date() }]);
     } catch {
       setMessages((prev) => [...prev, { id: uid(), role: 'bot', text: 'Connection error — try again in a moment!', ts: new Date() }]);
     } finally {
