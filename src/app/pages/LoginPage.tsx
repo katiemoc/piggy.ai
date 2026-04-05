@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router';
-import { Eye, EyeOff, ArrowRight, Check } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { PigMascot } from '../components/PigMascot';
 import { useAuth } from '../auth';
 
@@ -55,14 +55,12 @@ export function LoginPage() {
         {/* Feature list */}
         <div className="flex flex-col gap-3 w-full max-w-xs">
           {[
-            'Analyze your spending patterns',
-            'AI-powered financial insights',
-            'Set goals & track your progress',
-          ].map((text) => (
-            <div key={text} className="flex items-center gap-3 text-sm text-[#3d3d36]">
-              <div className="w-5 h-5 rounded-full bg-[#57886c]/15 flex items-center justify-center shrink-0">
-                <Check className="w-3 h-3 text-[#57886c]" />
-              </div>
+            { icon: '📊', text: 'Analyze your spending patterns' },
+            { icon: '🤖', text: 'AI-powered financial insights' },
+            { icon: '🎯', text: 'Set goals & track your progress' },
+          ].map(({ icon, text }) => (
+            <div key={text} className="flex items-center gap-3 bg-white/60 rounded-xl px-4 py-3 text-sm text-[#3d3d36] backdrop-blur-sm">
+              <span className="text-base">{icon}</span>
               {text}
             </div>
           ))}
