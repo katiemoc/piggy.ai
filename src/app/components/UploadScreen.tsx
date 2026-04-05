@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router';
 import { PigMascot } from './PigMascot';
 import { parseBankStatementPDF } from '../services/geminiService';
 import { saveTransactionsToStorage } from '../services/browserUseService';
+import { ManualEntryModal } from './ManualEntryModal';
 
 interface UploadScreenProps {
   onUpload: (useSample: boolean) => void;
@@ -13,6 +14,7 @@ export function UploadScreen({ onUpload }: UploadScreenProps) {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showManualEntry, setShowManualEntry] = useState(false);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -46,6 +48,12 @@ export function UploadScreen({ onUpload }: UploadScreenProps) {
 
   return (
     <div className="min-h-screen flex text-[#1a1a1a] bg-[#f5f5f0] items-center justify-center p-8 relative">
+      {showManualEntry && (
+        <ManualEntryModal
+          onClose={() => setShowManualEntry(false)}
+          onSave={() => { setShowManualEntry(false); onUpload(false); }}
+        />
+      )}
        {isProcessing && (
          <div className="absolute inset-0 bg-[#f5f5f0]/80 flex flex-col items-center justify-center z-10 backdrop-blur-sm">
             <Loader2 className="w-12 h-12 text-[#57886c] animate-spin mb-4" />
@@ -93,7 +101,7 @@ export function UploadScreen({ onUpload }: UploadScreenProps) {
             <span>Use Sample Data</span>
           </button>
           <button
-            onClick={() => onUpload(false)}
+            onClick={() => setShowManualEntry(true)}
             className="flex-1 bg-transparent border-2 border-[#d0d0d0] text-[#1a1a1a] px-6 py-3 rounded-lg hover:border-[#57886c] transition-colors flex items-center justify-center gap-2"
           >
             <span>+</span>
