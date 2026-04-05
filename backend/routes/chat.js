@@ -1,5 +1,8 @@
 import express from 'express';
+import multer from 'multer';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
 
 const router = express.Router();
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -15,12 +18,12 @@ Help users understand their spending, savings, and financial health.
 Keep responses concise and conversational. Use short paragraphs — no walls of text.
 If asked about anything unrelated to personal finance, gently redirect to financial topics.`;
 
-router.post('/parse-statement', async (req, res) => {
-  const { base64Pdf } = req.body;
-  if (!base64Pdf) return res.status(400).json({ error: 'PDF data is required' });
+router.post('/parse-statement', upload.single('pdf'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'PDF file is required' });
 
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const base64Pdf = req.file.buffer.toString('base64');
 
     const prompt = `You are a financial data extraction assistant. I will provide a bank statement PDF.
 Your job is to parse the statement and extract ALL transactions into a JSON array perfectly matching this format:

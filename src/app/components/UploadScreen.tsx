@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Upload, Loader2 } from 'lucide-react';
 import { PigMascot } from './PigMascot';
-import { fileToBase64 } from '../utils/geminiFileUtils';
 import { parseBankStatementPDF } from '../services/geminiService';
 import { saveTransactionsToStorage } from '../services/browserUseService';
 
@@ -21,8 +20,7 @@ export function UploadScreen({ onUpload }: UploadScreenProps) {
     setIsProcessing(true);
     setError(null);
     try {
-      const base64 = await fileToBase64(file);
-      const txns = await parseBankStatementPDF(base64);
+      const txns = await parseBankStatementPDF(file);
       saveTransactionsToStorage(txns);
       onUpload(false);
     } catch (err: any) {
