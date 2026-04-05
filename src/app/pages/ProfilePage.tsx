@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  User, Bell, Shield, Download, Trash2, ChevronRight,
+  Bell, Shield, Download, Trash2, ChevronRight,
   CreditCard, Target, Palette, Globe, LogOut, Edit2, Check,
 } from 'lucide-react';
 import { useTone, Tone } from '../context/ToneContext';
@@ -103,7 +103,7 @@ export function ProfilePage() {
                 </button>
               </div>
             )}
-            <div className="text-sm text-[#5a5a5a]">alex.chen@email.com</div>
+            <div className="text-sm text-[#5a5a5a]">{user?.email ?? ''}</div>
             <div className="text-xs text-[#5a5a5a] bg-[#f5f5f0] px-3 py-1 rounded-full">
               Member since Nov 2025
             </div>

@@ -32,7 +32,7 @@ export function Layout() {
   const [chatOpen, setChatOpen] = useState(false);
 
   return (
-    <div className="size-full flex bg-[#f5f5f0] text-[#1a1a1a]">
+    <div className="w-full h-screen overflow-hidden flex bg-[#f5f5f0] text-[#1a1a1a]">
       {/* ── Sidebar — desktop ── */}
       <aside className="hidden md:flex flex-col w-56 bg-white border-r border-[#e0e0e0] shrink-0 h-screen sticky top-0">
         {/* Logo */}
