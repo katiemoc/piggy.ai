@@ -1,19 +1,19 @@
 // src/components/GatherStatements.tsx
 import { useState, useEffect, useRef } from "react";
-import { X, Building2, Loader2, CheckCircle2, ExternalLink, AlertCircle } from "lucide-react";
+import { X, Loader2, CheckCircle2, ExternalLink, AlertCircle } from "lucide-react";
 import {
-  createBankTask, createDemoLoginTask, pollUntilDone, stopTask, resumeTask,
+  createBankTask, createDemoLoginTask, pollUntilDone, stopTask,
   parseTransactions, saveTransactionsToStorage,
   transactionsToCSV, type SessionStatus, type Transaction
 } from "../services/browserUseService";
 
 const SUPPORTED_BANKS = [
-  { id: "citibank", name: "Citibank", logo: "🏦" },
-  { id: "chase", name: "Chase", logo: "🏛️" },
-  { id: "golden1", name: "Golden 1 CU", logo: "🌻" },
+  { id: "citibank",        name: "Citibank",        logo: "🏦" },
+  { id: "chase",           name: "Chase",           logo: "🏛️" },
+  { id: "golden1",         name: "Golden 1 CU",     logo: "🌻" },
   { id: "bank of america", name: "Bank of America", logo: "🏧" },
-  { id: "wells_fargo", name: "Wells Fargo", logo: "🐴" },
-  { id: "__demo__", name: "Demo Bank", logo: "🧪" },
+  { id: "wells_fargo",     name: "Wells Fargo",     logo: "🐴" },
+  { id: "__demo__",        name: "Demo Bank",       logo: "🧪" },
 ];
 
 type Step = "select" | "running" | "done";
@@ -21,23 +21,21 @@ type Step = "select" | "running" | "done";
 interface BankTaskState {
   bank: string;
   taskId?: string;
-  status: SessionStatus["status"] | "pending" | "extracting";
+  status: SessionStatus["status"] | "pending";
   liveUrl?: string;
   transactions: Transaction[];
   error?: string;
 }
 
 export default function GatherStatements({ onClose }: { onClose: () => void }) {
-  const [step, setStep] = useState<Step>("select");
+  const [step, setStep]                   = useState<Step>("select");
   const [selectedBanks, setSelectedBanks] = useState<string[]>([]);
-  const [bankTasks, setBankTasks] = useState<BankTaskState[]>([]);
+  const [bankTasks, setBankTasks]         = useState<BankTaskState[]>([]);
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   const [activeLiveUrl, setActiveLiveUrl] = useState<string | null>(null);
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
-  const [isResuming, setIsResuming] = useState(false);
   const activeSessionRef = useRef<string | null>(null);
 
-  // Stop any active session when the component unmounts
+  // Stop any active session if the modal is closed mid-run
   useEffect(() => {
     return () => {
       if (activeSessionRef.current) stopTask(activeSessionRef.current);
@@ -54,53 +52,44 @@ export default function GatherStatements({ onClose }: { onClose: () => void }) {
     if (selectedBanks.length === 0) return;
 
     const tasks: BankTaskState[] = selectedBanks.map(bank => ({
-      bank, status: "pending", transactions: []
+      bank, status: "pending", transactions: [],
     }));
     setBankTasks(tasks);
     setStep("running");
 
-    // Run banks sequentially (so user can log in one at a time)
-    for (let i = 0; i < selectedBanks.length; i++) {
-      const bank = selectedBanks[i];
-
+    // Run banks one at a time so the user logs in to each sequentially
+    for (const bank of selectedBanks) {
       let taskId: string | undefined;
       try {
-        // Create task
-        taskId = bank === "__demo__" ? await createDemoLoginTask() : await createBankTask(bank);
+        taskId = bank === "__demo__"
+          ? await createDemoLoginTask()
+          : await createBankTask(bank);
+
         activeSessionRef.current = taskId;
-        setActiveSessionId(taskId);
         setBankTasks(prev => prev.map(t =>
           t.bank === bank ? { ...t, taskId, status: "running" } : t
         ));
 
-        // Poll until done
         const finalStatus = await pollUntilDone(taskId, (status) => {
           setBankTasks(prev => prev.map(t =>
             t.bank === bank
               ? { ...t, status: status.status, liveUrl: status.liveUrl }
               : t
           ));
-          // Show live browser URL when available
           if (status.liveUrl) setActiveLiveUrl(status.liveUrl);
         });
 
         activeSessionRef.current = null;
-        setActiveSessionId(null);
 
-        // Parse output
         const txns = parseTransactions(finalStatus.output || "", bank);
         setBankTasks(prev => prev.map(t =>
-          t.bank === bank
-            ? { ...t, status: "finished", transactions: txns }
-            : t
+          t.bank === bank ? { ...t, status: "finished", transactions: txns } : t
         ));
         setAllTransactions(prev => [...prev, ...txns]);
 
       } catch (err: any) {
-        // Stop the session so it doesn't count against the concurrent limit
         if (taskId) stopTask(taskId);
         activeSessionRef.current = null;
-        setActiveSessionId(null);
         setBankTasks(prev => prev.map(t =>
           t.bank === bank ? { ...t, status: "failed", error: err.message } : t
         ));
@@ -110,44 +99,37 @@ export default function GatherStatements({ onClose }: { onClose: () => void }) {
     setStep("done");
   };
 
-  const handleResume = async () => {
-    if (!activeSessionId) return;
-    setIsResuming(true);
-    try {
-      await resumeTask(activeSessionId);
-    } catch (err) {
-      console.error("Resume failed:", err);
-    } finally {
-      setIsResuming(false);
-    }
-  };
-
   const handleSave = () => {
     saveTransactionsToStorage(allTransactions);
-
-    // Also trigger CSV download
-    const csv = transactionsToCSV(allTransactions);
+    const csv  = transactionsToCSV(allTransactions);
     const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
     a.download = "piggy_statements.csv";
     a.click();
-
     onClose();
-    // Optionally navigate to dashboard
     window.location.href = "/dashboard";
   };
 
   const statusIcon = (status: BankTaskState["status"]) => {
-    if (status === "pending") return <div className="w-4 h-4 rounded-full bg-gray-300" />;
-    if (status === "running" || status === "paused")
+    if (status === "pending")
+      return <div className="w-4 h-4 rounded-full bg-gray-300" />;
+    if (["running", "paused"].includes(status))
       return <Loader2 className="w-4 h-4 animate-spin text-[#57886c]" />;
     if (status === "finished")
       return <CheckCircle2 className="w-4 h-4 text-[#57886c]" />;
     if (status === "failed")
       return <AlertCircle className="w-4 h-4 text-[#c0392b]" />;
     return null;
+  };
+
+  const statusLabel = (task: BankTaskState) => {
+    if (task.status === "running")  return "Agent working…";
+    if (task.status === "paused")   return "Waiting for login…";
+    if (task.status === "finished") return `✓ ${task.transactions.length} transactions`;
+    if (task.status === "failed")   return "Failed";
+    return "Queued";
   };
 
   return (
@@ -169,12 +151,12 @@ export default function GatherStatements({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
-        {/* STEP 1: Select Banks */}
+        {/* Select banks */}
         {step === "select" && (
           <div className="p-6 space-y-4">
             <p className="text-sm text-gray-600">
-              Select which banks to import from. You'll log in to each one — 
-              <strong> we never see your credentials.</strong>
+              Select which banks to import from. You'll log in to each one —{" "}
+              <strong>we never see your credentials.</strong>
             </p>
 
             <div className="grid grid-cols-2 gap-3">
@@ -197,7 +179,9 @@ export default function GatherStatements({ onClose }: { onClose: () => void }) {
                       {bank.name}
                     </span>
                     {bank.id === "__demo__" && (
-                      <p className="text-xs text-gray-400 mt-0.5">Test the full flow safely — no real credentials</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Test the full flow safely — no real credentials
+                      </p>
                     )}
                   </div>
                 </button>
@@ -205,8 +189,8 @@ export default function GatherStatements({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="bg-[#fbbf24]/10 rounded-xl p-3 text-xs text-gray-600 border border-[#fbbf24]/30">
-              ⚡ A live browser window will open for each bank. You'll log in yourself — 
-              the AI then navigates and extracts your transactions automatically.
+              ⚡ A live browser window opens for each bank. Log in yourself — the AI then
+              navigates, downloads the PDF, and extracts your transactions automatically.
             </div>
 
             <button
@@ -221,112 +205,70 @@ export default function GatherStatements({ onClose }: { onClose: () => void }) {
           </div>
         )}
 
-        {/* STEP 2: Running */}
+        {/* Running */}
         {step === "running" && (
           <div className="p-6 space-y-4">
-            {/* Is any bank currently paused / waiting for login? */}
-            {bankTasks.some(t => t.status === "paused") ? (
-              <div className="space-y-3">
-                <p className="text-sm text-gray-700 font-medium">
-                  ⏸ Waiting for you to log in
-                </p>
-                <p className="text-xs text-gray-500">
-                  Open the live browser below, complete your login (including any 2FA), then click <strong>Continue</strong>.
-                </p>
+            <p className="text-sm text-gray-600">
+              Processing one bank at a time.{" "}
+              <strong>Open the live browser link and log in — the agent continues automatically.</strong>
+            </p>
 
-                {activeLiveUrl && (
-                  <a
-                    href={activeLiveUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 p-3 bg-[#57886c]/10 border border-[#57886c]/30
-                               rounded-xl text-[#57886c] text-sm font-medium hover:bg-[#57886c]/20 transition-colors"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Open Live Browser → Log in here
-                  </a>
-                )}
-
-                <button
-                  onClick={handleResume}
-                  disabled={isResuming}
-                  className="w-full py-3 rounded-xl bg-[#57886c] text-white font-semibold
-                             hover:bg-[#466060] disabled:opacity-50 disabled:cursor-not-allowed
-                             transition-colors font-['Lexend'] flex items-center justify-center gap-2"
-                >
-                  {isResuming
-                    ? <><Loader2 className="w-4 h-4 animate-spin" /> Resuming…</>
-                    : "✓ I've logged in — Continue"}
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-sm text-gray-600">
-                  Processing your banks one at a time.
-                  <strong> Click the live view link to log in when prompted.</strong>
-                </p>
-                {activeLiveUrl && (
-                  <a
-                    href={activeLiveUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 p-3 bg-[#57886c]/10 border border-[#57886c]/30
-                               rounded-xl text-[#57886c] text-sm font-medium hover:bg-[#57886c]/20 transition-colors"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Open Live Browser → Log in here
-                  </a>
-                )}
-              </div>
+            {activeLiveUrl && (
+              <a
+                href={activeLiveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 p-3 bg-[#57886c]/10 border border-[#57886c]/30
+                           rounded-xl text-[#57886c] text-sm font-medium hover:bg-[#57886c]/20 transition-colors"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Open Live Browser → Log in here
+              </a>
             )}
 
-            {/* Bank Status List */}
             <div className="space-y-2">
               {bankTasks.map(task => (
-                <div key={task.bank}
+                <div
+                  key={task.bank}
                   className="flex items-center justify-between p-3 rounded-xl border border-[#e0e0e0] bg-[#f5f5f0]"
                 >
                   <div className="flex items-center gap-3">
                     {statusIcon(task.status)}
                     <span className="text-sm font-medium text-gray-700 capitalize font-['Lexend']">
-                      {task.bank}
+                      {task.bank === "__demo__" ? "Demo Bank" : task.bank}
                     </span>
                   </div>
-                  <span className="text-xs text-gray-400 capitalize">
-                    {task.status === "running"  ? "Agent working..." :
-                     task.status === "paused"   ? "⏸ Waiting for login" :
-                     task.status === "finished" ? `✓ ${task.transactions.length} transactions` :
-                     task.status === "failed"   ? "Failed" : "Queued"}
-                  </span>
+                  <span className="text-xs text-gray-400">{statusLabel(task)}</span>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* STEP 3: Done */}
+        {/* Done */}
         {step === "done" && (
           <div className="p-6 space-y-4">
             <div className="text-center py-4">
               <div className="text-5xl mb-3">🐷</div>
-              <h3 className="text-lg font-semibold text-gray-800 font-['Lexend']">
-                All done!
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-800 font-['Lexend']">All done!</h3>
               <p className="text-sm text-gray-500 mt-1">
                 Found <strong>{allTransactions.length}</strong> transactions
-                across {bankTasks.filter(t => t.status === "finished").length} banks
+                across {bankTasks.filter(t => t.status === "finished").length} bank
+                {bankTasks.filter(t => t.status === "finished").length !== 1 ? "s" : ""}
               </p>
             </div>
 
-            {/* Summary */}
             <div className="space-y-2">
               {bankTasks.map(task => (
-                <div key={task.bank}
+                <div
+                  key={task.bank}
                   className="flex items-center justify-between p-3 rounded-xl bg-[#f5f5f0]"
                 >
                   <div className="flex items-center gap-2">
                     {statusIcon(task.status)}
-                    <span className="text-sm capitalize font-['Lexend']">{task.bank}</span>
+                    <span className="text-sm capitalize font-['Lexend']">
+                      {task.bank === "__demo__" ? "Demo Bank" : task.bank}
+                    </span>
                   </div>
                   <span className="text-xs text-gray-500">
                     {task.status === "finished"
