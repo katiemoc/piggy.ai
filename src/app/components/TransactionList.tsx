@@ -1,4 +1,15 @@
-const transactions = [
+import { useState, useEffect } from 'react';
+
+interface Transaction {
+  id: number;
+  date: string;
+  description: string;
+  category: string;
+  amount: number;
+  type: 'income' | 'expense';
+}
+
+const sampleTransactions: Transaction[] = [
   { id: 1, date: '2026-04-03', description: 'Salary Deposit', category: 'Income', amount: 4225, type: 'income' },
   { id: 2, date: '2026-04-03', description: 'Rent Payment', category: 'Housing', amount: -2100, type: 'expense' },
   { id: 3, date: '2026-04-02', description: 'Grocery Store', category: 'Food', amount: -156.43, type: 'expense' },
@@ -14,6 +25,31 @@ const transactions = [
 ];
 
 export function TransactionList() {
+  const [transactions, setTransactions] = useState<Transaction[]>(sampleTransactions);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('piggyai_transactions');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored) as Array<{ date: string; description: string; category: string; amount: number }>;
+        const loaded = parsed.map((transaction, index) => ({
+          id: index + 1,
+          date: transaction.date,
+          description: transaction.description,
+          category: transaction.category,
+          amount: transaction.amount,
+          type: transaction.amount >= 0 ? 'income' : 'expense',
+        }));
+        setTransactions(loaded.length > 0 ? loaded : sampleTransactions);
+      } catch (error) {
+        console.error('Failed to parse stored transactions:', error);
+        setTransactions(sampleTransactions);
+      }
+    } else {
+      setTransactions(sampleTransactions);
+    }
+  }, []);
+
   return (
     <div className="bg-white border border-[#e0e0e0] rounded-lg p-6">
       <h3 className="text-lg mb-4">Recent Transactions</h3>
@@ -33,9 +69,7 @@ export function TransactionList() {
                 <td className="py-3 pr-4 text-sm text-[#5a5a5a]">{transaction.date}</td>
                 <td className="py-3 pr-4">{transaction.description}</td>
                 <td className="py-3 pr-4 text-sm text-[#5a5a5a]">{transaction.category}</td>
-                <td className={`py-3 text-right ${
-                  transaction.type === 'income' ? 'text-[#57886c]' : 'text-[#c0392b]'
-                }`}>
+                <td className={`py-3 text-right ${transaction.type === 'income' ? 'text-[#57886c]' : 'text-[#c0392b]'}`}>
                   {transaction.type === 'income' ? '+' : ''}${Math.abs(transaction.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </td>
               </tr>
