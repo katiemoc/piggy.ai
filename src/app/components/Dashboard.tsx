@@ -8,7 +8,7 @@ export function Dashboard() {
   const transactions = useTransactions();
   const hasData = transactions.length > 0;
 
-  // Stats
+  // All-time stats
   const income = transactions
     .filter(t => t.type === 'credit')
     .reduce((s, t) => s + t.amount, 0);
@@ -22,6 +22,45 @@ export function Dashboard() {
 
   const fmt = (n: number) =>
     '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+  // Month-over-month trend: compare most recent month vs the one before it
+  const monthlyData = transactions.reduce((acc, t) => {
+    const m = t.date?.substring(0, 7);
+    if (!m) return acc;
+    if (!acc[m]) acc[m] = { income: 0, spent: 0 };
+    if (t.type === 'credit') acc[m].income += t.amount;
+    else acc[m].spent += t.amount;
+    return acc;
+  }, {} as Record<string, { income: number; spent: number }>);
+
+  const months = Object.keys(monthlyData).sort();
+  const cur = months[months.length - 1];
+  const prev = months[months.length - 2];
+
+  const pctChange = (current: number, previous: number): string => {
+    if (!previous || previous === 0) return '—';
+    const p = ((current - previous) / previous) * 100;
+    return (p >= 0 ? '+' : '') + p.toFixed(0) + '%';
+  };
+
+  const curIncome  = cur  ? monthlyData[cur].income  : 0;
+  const prevIncome = prev ? monthlyData[prev].income  : 0;
+  const curSpent   = cur  ? monthlyData[cur].spent    : 0;
+  const prevSpent  = prev ? monthlyData[prev].spent   : 0;
+  const curNet     = curIncome  - curSpent;
+  const prevNet    = prevIncome - prevSpent;
+  const curRate    = curIncome  > 0 ? (curNet  / curIncome)  * 100 : 0;
+  const prevRate   = prevIncome > 0 ? (prevNet / prevIncome) * 100 : 0;
+
+  const incomeTrend = hasData && prev ? pctChange(curIncome, prevIncome) : '+12%';
+  const spentTrend  = hasData && prev ? pctChange(curSpent,  prevSpent)  : '+8%';
+  const netTrend    = hasData && prev ? pctChange(curNet,    prevNet)    : '+45%';
+  const rateTrend   = hasData && prev ? pctChange(curRate,   prevRate)   : '+3%';
+
+  // Label: most recent month name
+  const monthLabel = cur
+    ? new Date(cur + '-02').toLocaleString('default', { month: 'long', year: 'numeric' })
+    : 'Sample Data';
 
   return (
     <div className="size-full overflow-auto">
