@@ -4,6 +4,7 @@ import {
   CreditCard, Target, Palette, Globe, LogOut, Edit2, Check,
 } from 'lucide-react';
 import { useTone, Tone } from '../context/ToneContext';
+import { useAuth } from '../auth';
 
 const toneOptions: { id: Tone; emoji: string; label: string }[] = [
   { id: 'immigrant', emoji: '😤', label: 'Immigrant Parent' },
@@ -45,11 +46,12 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
 
 export function ProfilePage() {
   const { tone: preferredTone, setTone: setPreferredTone } = useTone();
+  const { user } = useAuth();
   const [currency, setCurrency] = useState('USD ($)');
   const [savingsTarget, setSavingsTarget] = useState(30);
   const [editingName, setEditingName] = useState(false);
-  const [name, setName] = useState('Alex Chen');
-  const [nameInput, setNameInput] = useState('Alex Chen');
+  const [name, setName] = useState(user?.name ?? 'User');
+  const [nameInput, setNameInput] = useState(user?.name ?? 'User');
   const [notifications, setNotifications] = useState({
     weeklyReport: true,
     spendingAlerts: true,
