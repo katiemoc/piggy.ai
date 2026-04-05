@@ -13,9 +13,17 @@ export function AuthCallbackPage() {
 
     if (token && user) {
       loginWithToken(token, JSON.parse(user));
-      navigate('/upload');
+      if (window.opener) {
+        window.close();
+      } else {
+        navigate('/upload');
+      }
     } else {
-      navigate('/login');
+      if (window.opener) {
+        window.close();
+      } else {
+        navigate('/login');
+      }
     }
   }, []);
 
