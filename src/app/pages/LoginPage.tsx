@@ -35,9 +35,9 @@ export function LoginPage() {
 
   
   return (
-    <div className="min-h-screen flex text-[#1a1a1a] relative bg-[#f5f5f0] lg:bg-gradient-to-r lg:from-[#fce8eb] lg:via-[#fdf0f3] lg:to-[#f5f5f0]">
+    <div className="min-h-screen flex text-[#1a1a1a] bg-[#f5f5f0]">
       {/* ── Left branding panel (desktop only) ── */}
-      <div className="hidden lg:flex lg:w-[44%] bg-transparent flex-col items-center justify-center p-12 relative overflow-hidden shrink-0">
+      <div className="hidden lg:flex lg:w-[44%] flex-col items-center justify-center p-12 relative overflow-hidden shrink-0">
         {/* Decorative circles */}
         <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-[#b05878]/8 blur-3xl" />
         <div className="absolute -bottom-24 -right-24 w-72 h-72 rounded-full bg-[#57886c]/8 blur-3xl" />
@@ -74,7 +74,7 @@ export function LoginPage() {
       </div>
 
       {/* ── Right form panel ── */}
-      <div className="flex-1 lg:bg-transparent bg-[#f5f5f0] flex flex-col items-center justify-center p-6 overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-center p-6 overflow-y-auto">
         {/* Mobile logo — hidden on desktop */}
         <div className="lg:hidden flex flex-col items-center mb-8">
           <PigMascot width={110} />
