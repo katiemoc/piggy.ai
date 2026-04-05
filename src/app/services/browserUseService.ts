@@ -10,199 +10,78 @@ const headers = {
   "Content-Type": "application/json",
 };
 
-// Output format used by all bank prompts — must match Transaction interface
-const OUTPUT_FORMAT = `
-Return ONLY a raw JSON array (no markdown, no explanation) in this exact shape:
-[
-  {
-    "date": "YYYY-MM-DD",
-    "description": "merchant or payee name",
-    "amount": 0.00,
-    "type": "debit" or "credit",
-    "category": "one of: Food & Dining, Shopping, Transport, Housing, Subscriptions, Income, Other"
-  }
-]
-Include ALL transactions found. Positive amounts only — use "type" to distinguish debits vs credits.
-If there are multiple pages of results, paginate through ALL of them before returning.
+// Completion condition appended to every prompt so BrowserUse knows
+// the task is NOT finished until both PDF and JSON are delivered.
+const COMPLETION_CONDITION = `
+IMPORTANT: This task is NOT complete until you have done ALL THREE of the following:
+1. Downloaded the transactions PDF to the user's device.
+2. Returned the full JSON array below.
+Do not stop, report success, or mark the task done after login — logging in is only the beginning.
+
+Return ONLY a raw JSON array (no markdown, no extra text) in this exact shape:
+[{ "date": "YYYY-MM-DD", "description": "merchant or payee name", "amount": 0.00, "type": "debit" or "credit", "category": "Food & Dining | Shopping | Transport | Housing | Subscriptions | Income | Other" }]
+Include ALL transactions. Positive amounts only — use "type" to distinguish debits vs credits. Paginate through every page before returning.
 `.trim();
 
 const BANK_INSTRUCTIONS: Record<string, string> = {
   citibank: `
-You are helping a user export their Citi bank transactions into piggy.ai, a personal finance app.
+Your goal is to download the last 90 days of Citi bank transactions as a PDF to the user's device and return them as structured JSON. This is one continuous task — do not stop after login.
 
-STEP 1 — Navigate to login:
-Go to https://online.citibank.com/US/JPS/portal/Index.do
-Click "Sign On" in the top right corner.
+Navigate to https://online.citibank.com/US/JPS/portal/Index.do and click "Sign On". Keep the browser open and wait — without pausing or stopping the session — until the user finishes logging in, including any OTP or 2FA prompt. You will know login is complete when the account dashboard showing balances appears.
 
-STEP 2 — Wait for the user to log in:
-Keep the browser open on the login page. Do NOT stop, pause, or exit the session.
-Watch the page continuously for up to 5 minutes.
-Proceed ONLY once you see the account dashboard with account balances visible — this means the user has fully completed login including any 2FA or OTP prompts.
+Once the dashboard is visible, immediately click on the primary checking or savings account. Open the transaction history, find the date filter or search panel, and set the range to the last 90 days. Paginate through every page until all transactions are loaded.
 
-STEP 3 — Find the right account:
-On the dashboard, locate the primary checking or savings account.
-Click on that account to open the transaction list.
+Next, locate the Download or Export button near the transaction list. Select PDF if prompted. If no direct PDF option exists, use the Print function (Ctrl+P / Cmd+P) and save as PDF. Confirm the download so the file saves to the user's device.
 
-STEP 4 — Set the date range:
-Look for a "Date Range", "Search Transactions", or filter option.
-Set the start date to exactly 90 days ago from today and the end date to today.
-Apply the filter.
-
-STEP 5 — Extract all transactions:
-Scroll through all results. If there is a "Show More", "Next Page", or pagination control, click through every page until all 90 days of transactions are loaded.
-Extract every transaction row: date, description/merchant, amount, and whether it is a debit (money out) or credit (money in).
-
-STEP 6 — Download as PDF:
-Look for a "Download", "Export", or printer icon near the transaction list.
-If a format option appears, select "PDF". If not, look for a "View Statement" or "Print" option and use the browser's print-to-PDF feature (Ctrl+P / Cmd+P → Save as PDF).
-Confirm the download so the file saves to the user's device.
-Wait for the download to complete before continuing.
-
-STEP 7 — Return output:
-${OUTPUT_FORMAT}
+${COMPLETION_CONDITION}
   `.trim(),
 
   chase: `
-You are helping a user export their Chase bank transactions into piggy.ai, a personal finance app.
+Your goal is to download the last 90 days of Chase bank transactions as a PDF to the user's device and return them as structured JSON. This is one continuous task — do not stop after login.
 
-STEP 1 — Navigate to login:
-Go to https://secure.chase.com/web/auth/dashboard
-If redirected, click "Sign In" in the top right corner.
+Navigate to https://secure.chase.com/web/auth/dashboard (or click "Sign In" if redirected). Keep the browser open and wait — without pausing or stopping the session — until the user finishes logging in, including any 2FA push notification. You will know login is complete when the Chase account dashboard with account tiles is fully visible.
 
-STEP 2 — Wait for the user to log in:
-Keep the browser open on the login page. Do NOT stop, pause, or exit the session.
-Watch the page continuously for up to 5 minutes.
-Proceed ONLY once the Chase account dashboard is fully loaded and account tiles are visible — this means the user has completed login including any 2FA push notification.
+Once the dashboard is visible, immediately click on the primary checking account to open its transaction history. Click the filter or calendar icon and set a custom date range: 90 days ago to today. Click "See more transactions" or any load-more control repeatedly until all results are showing.
 
-STEP 3 — Select the account:
-On the dashboard, click on the primary checking account (or the first account listed if multiple exist).
-This opens the transaction history for that account.
+Next, click the download arrow icon (labeled "Download") near the transaction list and select PDF. If PDF is not available, go to Statements in the left sidebar and download the relevant monthly statement as PDF instead. Confirm the download so the file saves to the user's device.
 
-STEP 4 — Set the date range:
-Click "Search or filter transactions" or the filter/calendar icon.
-Choose a custom date range: start date = 90 days ago, end date = today.
-Apply the filter.
-
-STEP 5 — Extract all transactions:
-Scroll down through the full list. If a "See more transactions" or load-more button appears, click it repeatedly until no more appear.
-Capture every transaction: posted date, description, amount, and debit vs credit.
-
-STEP 6 — Download as PDF:
-Look for a download or print icon near the top of the transaction list (Chase typically shows a downward arrow icon labeled "Download").
-Click it and select "PDF" from the format options if prompted.
-If only CSV/other formats are available, look for a "Statements" section in the left sidebar and download the corresponding monthly statement as a PDF instead.
-Confirm the download so the file saves to the user's device.
-Wait for the download to complete before continuing.
-
-STEP 7 — Return output:
-${OUTPUT_FORMAT}
+${COMPLETION_CONDITION}
   `.trim(),
 
   golden1: `
-You are helping a user export their Golden 1 Credit Union transactions into piggy.ai, a personal finance app.
+Your goal is to download the last 90 days of Golden 1 Credit Union transactions as a PDF to the user's device and return them as structured JSON. This is one continuous task — do not stop after login.
 
-STEP 1 — Navigate to login:
-Go to https://www.golden1.com
-Click "Online Banking Login" in the top navigation bar.
-You will be redirected to the Golden 1 online banking portal.
+Navigate to https://www.golden1.com and click "Online Banking Login" in the top navigation. Keep the browser open and wait — without pausing or stopping the session — until the user finishes logging in, including any security question or OTP. You will know login is complete when the account summary page with balances is visible.
 
-STEP 2 — Wait for the user to log in:
-Keep the browser open on the login page. Do NOT stop, pause, or exit the session.
-Watch the page continuously for up to 5 minutes.
-Proceed ONLY once the account summary page with balances is visible — this means the user has completed login including any security questions or OTP.
+Once the dashboard is visible, immediately click on the primary checking or savings account, then click the Activity, Transactions, or Account History tab. Find the date filter and set the range to the last 90 days. Paginate through every page until all transactions are loaded.
 
-STEP 3 — Open transaction history:
-Click on the primary checking or savings account name to open its detail view.
-Look for an "Activity", "Transactions", or "Account History" tab and click it.
+Next, locate the Download, Export, or Print button near the transaction list. Select PDF if prompted. If no PDF option exists, navigate to the Statements section and download the most recent statement(s) as PDF, or use Ctrl+P / Cmd+P → Save as PDF on the transaction view. Confirm the download so the file saves to the user's device.
 
-STEP 4 — Set the date range:
-Find the date filter or search panel.
-Set the start date to 90 days ago and end date to today.
-Click "Search" or "Apply" to load the filtered results.
-
-STEP 5 — Extract all transactions:
-Scroll through all results. If there is a "Next" page or "Load More" option, click through every page until all transactions in the 90-day window are visible.
-Capture: date, description/merchant, amount, and whether each transaction is a debit or credit.
-
-STEP 6 — Download as PDF:
-Look for a "Download", "Export", or "Print" button near the transaction list or account activity header.
-If a format selector appears, choose "PDF". If the only export option is CSV/OFX, alternatively navigate to "Statements" in the account menu and download the most recent statement(s) as PDF.
-If no direct PDF option exists, use Cmd+P / Ctrl+P → Save as PDF to print the current transaction view to a PDF file.
-Confirm the download so the file saves to the user's device.
-Wait for the download to complete before continuing.
-
-STEP 7 — Return output:
-${OUTPUT_FORMAT}
+${COMPLETION_CONDITION}
   `.trim(),
 
   "bank of america": `
-You are helping a user export their Bank of America transactions into piggy.ai, a personal finance app.
+Your goal is to download the last 90 days of Bank of America transactions as a PDF to the user's device and return them as structured JSON. This is one continuous task — do not stop after login.
 
-STEP 1 — Navigate to login:
-Go to https://www.bankofamerica.com
-Click "Sign In" in the top right corner, then select "Online Banking".
+Navigate to https://www.bankofamerica.com and click "Sign In" then "Online Banking". Keep the browser open and wait — without pausing or stopping the session — until the user finishes logging in, including any 2-step verification or Erica prompt. You will know login is complete when the main accounts overview page with balances is loaded.
 
-STEP 2 — Wait for the user to log in:
-Keep the browser open on the login page. Do NOT stop, pause, or exit the session.
-Watch the page continuously for up to 5 minutes.
-Proceed ONLY once the main accounts overview page is loaded and account balances are visible — this means the user has completed login including any 2-step verification or Erica prompts.
+Once the dashboard is visible, immediately click on the primary checking account (labeled "Bank of America Advantage" or similar). Click "Advanced Search" or the date range filter and set From to 90 days ago, To to today. Click Search. Paginate through all results.
 
-STEP 3 — Open the account:
-Click on the primary checking account (labeled "Bank of America Advantage" or similar).
-This opens the account detail page with recent transactions.
+Next, click the download icon (downward arrow labeled "Download Transactions") near the transaction list and select PDF. If PDF is not available, go to Statements & Documents in the top navigation, find the statement covering the last 90 days, and download it as PDF. Confirm the download so the file saves to the user's device.
 
-STEP 4 — Set the date range:
-Click on "Advanced Search" or the date range filter near the transaction list.
-Set the From date to 90 days ago and the To date to today.
-Click "Search" to apply.
-
-STEP 5 — Extract all transactions:
-Scroll through all results. Click "Next" or any pagination control to load additional pages until all transactions are captured.
-For each transaction capture: date posted, description, amount, and transaction type (debit/withdrawal vs credit/deposit).
-
-STEP 6 — Download as PDF:
-Look for the download icon (downward arrow) near the top right of the transaction list — Bank of America typically labels this "Download Transactions".
-Click it. If a format menu appears, select "PDF". If PDF is not an option, alternatively go to "Statements & Documents" in the top navigation, find the statement covering the last 90 days, and download it as a PDF.
-Confirm the download so the file saves to the user's device.
-Wait for the download to complete before continuing.
-
-STEP 7 — Return output:
-${OUTPUT_FORMAT}
+${COMPLETION_CONDITION}
   `.trim(),
 
   wells_fargo: `
-You are helping a user export their Wells Fargo transactions into piggy.ai, a personal finance app.
+Your goal is to download the last 90 days of Wells Fargo transactions as a PDF to the user's device and return them as structured JSON. This is one continuous task — do not stop after login.
 
-STEP 1 — Navigate to login:
-Go to https://www.wellsfargo.com
-Click "Sign On" in the top right corner.
+Navigate to https://www.wellsfargo.com and click "Sign On". Keep the browser open and wait — without pausing or stopping the session — until the user finishes signing on, including any 2-step verification code. You will know login is complete when the Wells Fargo account summary page with balances is fully loaded.
 
-STEP 2 — Wait for the user to log in:
-Keep the browser open on the login page. Do NOT stop, pause, or exit the session.
-Watch the page continuously for up to 5 minutes.
-Proceed ONLY once the Wells Fargo account summary page with account balances is fully loaded — this means the user has completed sign-on including any 2-step verification code.
+Once the dashboard is visible, immediately click on the primary checking account to open the account activity page. Find the Date Range or Customize option and select a custom range: 90 days ago to today. Click Update or Search. Paginate through all results using Next or More until every transaction in the range is visible.
 
-STEP 3 — Open the account:
-Click on the primary checking account from the account summary list.
-This opens the account activity page.
+Next, click the Download Transactions link or downward arrow near the activity list and select PDF. If PDF is not available, go to Statements & Documents under the account menu, find the statement(s) covering the last 90 days, and download as PDF. Confirm the download so the file saves to the user's device.
 
-STEP 4 — Set the date range:
-On the account activity page, look for "Date Range" or "Customize" options.
-Select a custom range: start date = 90 days ago, end date = today.
-Click "Update" or "Search" to apply.
-
-STEP 5 — Extract all transactions:
-Scroll through and paginate through ALL results — click "Next" or "More" until every transaction in the 90-day range has been loaded.
-For each transaction capture: date, description, amount, and whether it is a debit (withdrawal) or credit (deposit).
-
-STEP 6 — Download as PDF:
-Look for a "Download Transactions" link or icon near the top of the activity list — Wells Fargo typically shows this as a downward arrow or a "Download" text link.
-Click it. If a format dialog appears, select "PDF" and confirm. If PDF is not offered, look for "Statements & Documents" under the account menu, find the statement(s) covering the last 90 days, and download each as a PDF.
-Confirm the download so the file saves to the user's device.
-Wait for the download to complete before continuing.
-
-STEP 7 — Return output:
-${OUTPUT_FORMAT}
+${COMPLETION_CONDITION}
   `.trim(),
 };
 
