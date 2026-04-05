@@ -1,4 +1,5 @@
 import { Upload } from 'lucide-react';
+import { PigMascot } from './PigMascot';
 
 interface UploadScreenProps {
   onUpload: (useSample: boolean) => void;
@@ -17,8 +18,9 @@ export function UploadScreen({ onUpload }: UploadScreenProps) {
   return (
     <div className="min-h-screen flex items-center justify-center p-8">
       <div className="max-w-xl w-full flex flex-col items-center gap-8">
-        <div className="text-center">
-          <h1 className="text-5xl tracking-tight mb-2">
+        <div className="flex flex-col items-center">
+          <PigMascot width={100} />
+          <h1 className="text-5xl tracking-tight mt-3 mb-2">
             <span className="text-[#b05878]">piggy</span><span className="text-[#57886c]">.ai</span>
           </h1>
           <p className="text-[#5a5a5a]">your brutally honest financial twin</p>
