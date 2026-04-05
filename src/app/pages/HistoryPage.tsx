@@ -34,7 +34,7 @@ function buildMonthStats(transactions: Transaction[]): MonthStats[] {
   }
 
   return Object.entries(grouped)
-    .sort(([a], [b]) => b.localeCompare(a)) // newest first
+    .sort(([a], [b]) => a.localeCompare(b)) // chronological: oldest first
     .map(([key, txns]) => {
       const income = txns.filter(t => t.type === 'credit').reduce((s, t) => s + t.amount, 0);
       const expenses = txns.filter(t => t.type === 'debit').reduce((s, t) => s + t.amount, 0);
@@ -65,9 +65,10 @@ export function HistoryPage() {
   const months = useMemo(() => buildMonthStats(transactions), [transactions]);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
+  const mostRecent = months[months.length - 1];
   const selected = selectedKey
-    ? months.find(m => m.key === selectedKey) ?? months[0]
-    : months[0];
+    ? months.find(m => m.key === selectedKey) ?? mostRecent
+    : mostRecent;
 
   if (transactions.length === 0) {
     return (
