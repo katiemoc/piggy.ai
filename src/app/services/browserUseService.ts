@@ -1,14 +1,9 @@
 // src/services/browserUseService.ts
 
-const BU_API = "https://api.browser-use.com/api/v3";
-
-const API_KEY = import.meta.env.VITE_BROWSER_USE_API_KEY as string;
-console.log('KEY:', import.meta.env.VITE_BROWSER_USE_API_KEY)
-
-if (!API_KEY) console.warn("[BrowserUse] VITE_BROWSER_USE_API_KEY is not set");
+const BACKEND_API =
+  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") || "";
 
 const headers = {
-  "X-Browser-Use-API-Key": API_KEY,
   "Content-Type": "application/json",
 };
 
@@ -69,45 +64,73 @@ export interface SessionStatus {
   error?: string;
 }
 
-export async function createBankTask(bank: string): Promise<string> {
-  const instruction = BANK_INSTRUCTIONS[bank.toLowerCase()];
-  if (!instruction) throw new Error(`Unsupported bank: ${bank}`);
+function getApiUrl(path: string): string {
+  return `${BACKEND_API}${path}`;
+}
 
-  const response = await fetch(`${BU_API}/sessions`, {
+async function parseErrorResponse(response: Response): Promise<string> {
+  const text = await response.text();
+  try {
+    const json = JSON.parse(text);
+    return json.error || json.detail || text;
+  } catch {
+    return text;
+  }
+}
+
+export async function createBankTask(bank: string): Promise<string> {
+  const normalizedBank = bank.toLowerCase();
+  const instruction = BANK_INSTRUCTIONS[normalizedBank];
+
+  if (!instruction) {
+    throw new Error(`Unsupported bank: ${bank}`);
+  }
+
+  const response = await fetch(getApiUrl("/api/browseruse/session"), {
     method: "POST",
     headers,
     body: JSON.stringify({
+      bank: normalizedBank,
       task: instruction.trim(),
     }),
   });
 
   if (!response.ok) {
-    const errBody = await response.text();
+    const errBody = await parseErrorResponse(response);
     throw new Error(`Failed to create session (${response.status}): ${errBody}`);
   }
 
   const data = await response.json();
-  return data.id;
+
+  const sessionId = data.sessionId ?? data.id;
+  if (!sessionId) {
+    throw new Error("Backend did not return a session ID");
+  }
+
+  return sessionId;
 }
 
 export async function getTaskStatus(sessionId: string): Promise<SessionStatus> {
-  const response = await fetch(`${BU_API}/sessions/${sessionId}`, {
-    method: "GET",
-    headers,
-  });
+  const response = await fetch(
+    getApiUrl(`/api/browseruse/session/${encodeURIComponent(sessionId)}`),
+    {
+      method: "GET",
+      headers,
+    }
+  );
 
   if (!response.ok) {
-    const errBody = await response.text();
+    const errBody = await parseErrorResponse(response);
     throw new Error(`Failed to get session status (${response.status}): ${errBody}`);
   }
 
   const data = await response.json();
 
   return {
-    sessionId: data.id,
+    sessionId: data.sessionId ?? data.id ?? sessionId,
     status: data.status,
-    liveUrl: data.live_url ?? data.liveUrl,
-    output: data.output ?? data.result,
+    liveUrl: data.liveUrl ?? data.live_url,
+    output: data.output ?? data.result ?? "",
     error: data.error,
   };
 }
@@ -146,12 +169,14 @@ export function parseTransactions(output: string, bank: string): Transaction[] {
     if (!jsonMatch) return [];
 
     const raw = JSON.parse(jsonMatch[0]);
+    if (!Array.isArray(raw)) return [];
+
     return raw.map((t: any) => ({
       date: t.date || "",
       description: t.description || t.merchant || "",
       amount: Math.abs(parseFloat(t.amount) || 0),
       type: t.type === "credit" ? "credit" : "debit",
-      category: t.category || categorize(t.description || ""),
+      category: t.category || categorize(t.description || t.merchant || ""),
       bank,
     }));
   } catch {
@@ -161,22 +186,28 @@ export function parseTransactions(output: string, bank: string): Transaction[] {
 
 function categorize(description: string): string {
   const d = description.toLowerCase();
+
   if (/uber|lyft|bart|muni|gas|shell|chevron/.test(d)) return "Transport";
   if (/amazon|walmart|target|costco/.test(d)) return "Shopping";
-  if (/restaurant|mcdonald|chipotle|doordash|grubhub|coffee|starbucks/.test(d)) return "Food & Dining";
+  if (/restaurant|mcdonald|chipotle|doordash|grubhub|coffee|starbucks/.test(d)) {
+    return "Food & Dining";
+  }
   if (/netflix|spotify|hulu|apple|disney/.test(d)) return "Subscriptions";
   if (/rent|apartment|landlord/.test(d)) return "Housing";
   if (/venmo|zelle|transfer/.test(d)) return "Transfer";
   if (/paycheck|salary|deposit|income/.test(d)) return "Income";
+
   return "Other";
 }
 
 export function transactionsToCSV(transactions: Transaction[]): string {
   const header = "date,description,amount,type,category,bank";
-  const rows = transactions.map(
-    (t) =>
-      `${t.date},"${t.description.replace(/"/g, '""')}",${t.amount},${t.type},${t.category},${t.bank}`
-  );
+
+  const rows = transactions.map((t) => {
+    const escapedDescription = (t.description ?? "").replace(/"/g, '""');
+    return `${t.date},"${escapedDescription}",${t.amount},${t.type},${t.category},${t.bank}`;
+  });
+
   return [header, ...rows].join("\n");
 }
 
@@ -184,13 +215,16 @@ export function saveTransactionsToStorage(transactions: Transaction[]): void {
   const existing: Transaction[] = JSON.parse(
     localStorage.getItem("piggy_transactions") || "[]"
   );
+
   const merged = [...existing, ...transactions];
   const seen = new Set<string>();
+
   const deduped = merged.filter((t) => {
-    const key = `${t.date}-${t.description}-${t.amount}`;
+    const key = `${t.date}-${t.description}-${t.amount}-${t.bank}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   });
+
   localStorage.setItem("piggy_transactions", JSON.stringify(deduped));
 }
