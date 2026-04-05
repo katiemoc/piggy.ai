@@ -17,6 +17,8 @@ function PasswordStrengthBar({ password }: { password: string }) {
 
   if (!password) return null;
 
+
+  
   return (
     <div className="mt-2">
       <div className="flex gap-1 mb-1.5">
