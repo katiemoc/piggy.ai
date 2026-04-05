@@ -50,7 +50,7 @@ function PasswordStrengthBar({ password }: { password: string }) {
 
 export function SignupPage() {
   const navigate = useNavigate();
-  const { signup } = useAuth();
+  const { signup, loginWithToken } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -165,6 +165,7 @@ export function SignupPage() {
                   const handler = (e: MessageEvent) => {
                     if (e.data?.type === 'google-auth-success') {
                       window.removeEventListener('message', handler);
+                      loginWithToken(e.data.token, e.data.user);
                       navigate('/upload');
                     }
                   };

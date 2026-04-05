@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import {
   Bell, Shield, Download, Trash2, ChevronRight,
   CreditCard, Target, Palette, Globe, LogOut, Edit2, Check,
@@ -45,8 +46,9 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
 }
 
 export function ProfilePage() {
+  const navigate = useNavigate();
   const { tone: preferredTone, setTone: setPreferredTone } = useTone();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [currency, setCurrency] = useState('USD ($)');
   const [savingsTarget, setSavingsTarget] = useState(30);
   const [editingName, setEditingName] = useState(false);
@@ -108,7 +110,10 @@ export function ProfilePage() {
               Member since Nov 2025
             </div>
             {/* Sign Out — lives here, not in Data & Privacy */}
-            <button className="flex items-center gap-2 w-full justify-center px-4 py-2 border border-[#e0e0e0] rounded-lg text-sm text-[#5a5a5a] hover:bg-[#f5f5f0] hover:text-[#c0392b] hover:border-[#c0392b]/30 transition-colors">
+            <button
+              onClick={() => { logout(); navigate('/login'); }}
+              className="flex items-center gap-2 w-full justify-center px-4 py-2 border border-[#e0e0e0] rounded-lg text-sm text-[#5a5a5a] hover:bg-[#f5f5f0] hover:text-[#c0392b] hover:border-[#c0392b]/30 transition-colors"
+            >
               <LogOut className="w-4 h-4" />
               Sign Out
             </button>
