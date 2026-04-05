@@ -159,7 +159,7 @@ export function UploadScreen({ onUpload }: UploadScreenProps) {
           {allDone && (
             <button
               onClick={() => onUpload(false)}
-              className="w-full bg-[#57886c] text-white px-6 py-3 rounded-lg hover:bg-[#466060] transition-colors"
+              className="w-full bg-[#57886c] text-white px-6 py-3 rounded-lg hover:bg-[#466060] transition-colors cursor-pointer"
             >
               View Dashboard →
             </button>
