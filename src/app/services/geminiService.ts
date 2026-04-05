@@ -2,7 +2,6 @@ import type { Transaction } from './browserUseService';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
 
-
 export const parseBankStatementPDF = async (base64Pdf: string): Promise<Transaction[]> => {
   const response = await fetch(`${API_URL}/api/chat/parse-statement`, {
     method: 'POST',
