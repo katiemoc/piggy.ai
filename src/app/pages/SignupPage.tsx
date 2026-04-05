@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { useAuth } from '../auth';
-import { Eye, EyeOff, ArrowRight, Check } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Check, Sparkles } from 'lucide-react';
 import { PigMascot } from '../components/PigMascot';
 
 function PasswordStrengthBar({ password }: { password: string }) {
@@ -59,7 +59,7 @@ export function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     if (!name || !email || !password || !confirmPassword) {
