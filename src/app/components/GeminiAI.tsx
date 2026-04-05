@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2, UploadCloud, CheckCircle, FileText, ArrowRight } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
-import { fileToBase64 } from '../utils/geminiFileUtils';
 import { parseBankStatementPDF, sendGeminiChat, ChatMessage } from '../services/geminiService';
 
 export interface DashboardData {
@@ -45,8 +44,7 @@ export const GeminiAIView: React.FC = () => {
     setIsProcessing(true);
     setError(null);
     try {
-      const base64Data = await fileToBase64(file);
-      const rawTxns = await parseBankStatementPDF(base64Data);
+      const rawTxns = await parseBankStatementPDF(file);
       
       const income = rawTxns.filter(t => t.type === 'credit').reduce((a, t) => a + t.amount, 0);
       const spent = rawTxns.filter(t => t.type === 'debit').reduce((a, t) => a + t.amount, 0);

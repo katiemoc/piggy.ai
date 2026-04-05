@@ -8,8 +8,7 @@ export const parseBankStatementPDF = async (file: File): Promise<Transaction[]> 
 
   const response = await fetch(`${API_URL}/api/chat/parse-statement`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ base64Pdf })
+    body: formData   // no Content-Type header — browser sets multipart boundary automatically
   });
 
   const data = await response.json();
