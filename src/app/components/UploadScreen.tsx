@@ -51,7 +51,6 @@ export function UploadScreen({ onUpload }: UploadScreenProps) {
             onClick={() => onUpload(true)}
             className="flex-1 bg-[#57886c] text-white px-6 py-3 rounded-lg hover:bg-[#466060] transition-colors flex items-center justify-center gap-2"
           >
-            <span>⚡</span>
             <span>Use Sample Data</span>
           </button>
           <button
