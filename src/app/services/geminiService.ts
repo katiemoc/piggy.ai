@@ -1,4 +1,5 @@
 import type { Transaction } from './browserUseService';
+import { normalizeCategory } from './browserUseService';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
 
@@ -22,7 +23,11 @@ export const parseBankStatementPDF = async (file: File): Promise<Transaction[]> 
     throw new Error(data.error || 'Failed to parse PDF through backend proxy');
   }
 
-  return data.transactions;
+  // Normalize Gemini's raw category strings → canonical 7 categories
+  return (data.transactions as Transaction[]).map(t => ({
+    ...t,
+    category: normalizeCategory(t.category),
+  }));
 };
 
 export interface ChatMessage {
