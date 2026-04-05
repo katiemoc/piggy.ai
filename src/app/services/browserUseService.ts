@@ -3,6 +3,8 @@
 const BU_API = "https://api.browser-use.com/api/v3";
 
 const API_KEY = import.meta.env.VITE_BROWSER_USE_API_KEY as string;
+console.log('KEY:', import.meta.env.VITE_BROWSER_USE_API_KEY)
+
 if (!API_KEY) console.warn("[BrowserUse] VITE_BROWSER_USE_API_KEY is not set");
 
 const headers = {
