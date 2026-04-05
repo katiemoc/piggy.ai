@@ -29,7 +29,7 @@ function HomePageWrapper() {
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate to="/profile" replace />,
+    element: <Navigate to="/login" replace />,
   },
   {
     path: '/login',
