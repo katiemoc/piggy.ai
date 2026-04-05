@@ -1,14 +1,16 @@
 // src/services/browserUseService.ts
 
 const BU_API = "https://api.browser-use.com/api/v2";
-const API_KEY = import.meta.env.VITE_BROWSER_USE_API_KEY;
+
+// Guard: surface a clear error if key is missing
+const API_KEY = import.meta.env.VITE_BROWSER_USE_API_KEY as string;
+if (!API_KEY) console.warn("[BrowserUse] VITE_BROWSER_USE_API_KEY is not set");
 
 const headers = {
   "Authorization": `Bearer ${API_KEY}`,
   "Content-Type": "application/json",
 };
 
-// Bank-specific instructions for the agent
 const BANK_INSTRUCTIONS: Record<string, string> = {
   citibank: `
     Go to https://online.citibank.com. 
@@ -61,12 +63,12 @@ export interface Transaction {
 export interface TaskStatus {
   taskId: string;
   status: "created" | "running" | "paused" | "finished" | "failed" | "stopped";
-  liveUrl?: string;     // URL for user to watch/interact with the browser
-  output?: string;      // Final result from agent
+  liveUrl?: string;
+  output?: string;
   error?: string;
 }
 
-// Create a Browser Use task for a single bank
+// ✅ Fixed: only `task` in body — no unsupported fields
 export async function createBankTask(bank: string): Promise<string> {
   const instruction = BANK_INSTRUCTIONS[bank.toLowerCase()];
   if (!instruction) throw new Error(`Unsupported bank: ${bank}`);
@@ -75,39 +77,41 @@ export async function createBankTask(bank: string): Promise<string> {
     method: "POST",
     headers,
     body: JSON.stringify({
-      task: instruction,
-      // Allow user to take control for login
-      allowed_domains: ["*"],
-      save_browser_data: false, // privacy-conscious
+      task: instruction.trim(),   // ✅ only valid v2 field
     }),
   });
 
-  if (!response.ok) throw new Error(`Failed to create task: ${response.statusText}`);
+  if (!response.ok) {
+    const errBody = await response.text();
+    throw new Error(`Failed to create task (${response.status}): ${errBody}`);
+  }
+
   const data = await response.json();
-  return data.id; // task ID
+  return data.id;
 }
 
-// Poll task status
 export async function getTaskStatus(taskId: string): Promise<TaskStatus> {
   const response = await fetch(`${BU_API}/task/${taskId}`, { headers });
-  if (!response.ok) throw new Error(`Failed to get task status`);
+  if (!response.ok) throw new Error(`Failed to get task status (${response.status})`);
   const data = await response.json();
 
   return {
     taskId: data.id,
     status: data.status,
-    liveUrl: data.live_url,     // iframe or link for user to log in
+    liveUrl: data.live_url,
     output: data.output,
     error: data.error,
   };
 }
 
-// Stop a task
+// ✅ Fixed: correct v2 stop endpoint is /task/{id}/stop
 export async function stopTask(taskId: string): Promise<void> {
-  await fetch(`${BU_API}/stop-task/${taskId}`, { method: "PUT", headers });
+  await fetch(`${BU_API}/task/${taskId}/stop`, {
+    method: "PUT",
+    headers,
+  });
 }
 
-// Poll until done (with callback for status updates)
 export async function pollUntilDone(
   taskId: string,
   onUpdate: (status: TaskStatus) => void,
@@ -122,7 +126,7 @@ export async function pollUntilDone(
         if (["finished", "failed", "stopped"].includes(status.status)) {
           clearInterval(interval);
           if (status.status === "finished") resolve(status);
-          else reject(new Error(status.error || "Task failed"));
+          else reject(new Error(status.error || `Task ended with status: ${status.status}`));
         }
       } catch (err) {
         clearInterval(interval);
@@ -132,10 +136,8 @@ export async function pollUntilDone(
   });
 }
 
-// Parse agent output JSON → Transaction[]
 export function parseTransactions(output: string, bank: string): Transaction[] {
   try {
-    // Agent returns JSON somewhere in its output
     const jsonMatch = output.match(/\[[\s\S]*\]/);
     if (!jsonMatch) return [];
 
@@ -145,7 +147,7 @@ export function parseTransactions(output: string, bank: string): Transaction[] {
       description: t.description || t.merchant || "",
       amount: Math.abs(parseFloat(t.amount) || 0),
       type: t.type === "credit" ? "credit" : "debit",
-      category: t.category || categorize(t.description),
+      category: t.category || categorize(t.description || ""),
       bank,
     }));
   } catch {
@@ -153,7 +155,6 @@ export function parseTransactions(output: string, bank: string): Transaction[] {
   }
 }
 
-// Simple rule-based categorizer fallback
 function categorize(description: string): string {
   const d = description.toLowerCase();
   if (/uber|lyft|bart|muni|gas|shell|chevron/.test(d)) return "Transport";
@@ -166,7 +167,6 @@ function categorize(description: string): string {
   return "Other";
 }
 
-// Convert transactions to CSV string
 export function transactionsToCSV(transactions: Transaction[]): string {
   const header = "date,description,amount,type,category,bank";
   const rows = transactions.map(t =>
@@ -175,12 +175,12 @@ export function transactionsToCSV(transactions: Transaction[]): string {
   return [header, ...rows].join("\n");
 }
 
-// Save to localStorage
 export function saveTransactionsToStorage(transactions: Transaction[]): void {
-  const existing = JSON.parse(localStorage.getItem("piggy_transactions") || "[]");
+  const existing: Transaction[] = JSON.parse(
+    localStorage.getItem("piggy_transactions") || "[]"
+  );
   const merged = [...existing, ...transactions];
-  // Deduplicate by date+description+amount
-  const seen = new Set();
+  const seen = new Set<string>();
   const deduped = merged.filter(t => {
     const key = `${t.date}-${t.description}-${t.amount}`;
     if (seen.has(key)) return false;
