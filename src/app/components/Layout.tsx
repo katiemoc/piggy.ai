@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { LayoutDashboard, Bot, Clock, User, Upload, LogOut } from 'lucide-react';
 import { useAuth } from '../auth';
+import { PigMascot } from './PigMascot';
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -40,11 +41,14 @@ export function Layout() {
       <aside className="hidden md:flex flex-col w-56 bg-white border-r border-[#e0e0e0] shrink-0">
         {/* Logo */}
         <div className="p-5 border-b border-[#e0e0e0]">
-          <button onClick={() => navigate('/upload')} className="text-left">
-            <div className="text-2xl tracking-tight">
-              <span className="text-[#b05878]">piggy</span><span className="text-[#57886c]">.ai</span>
+          <button onClick={() => navigate('/upload')} className="text-left flex items-center gap-2">
+            <PigMascot width={36} />
+            <div>
+              <div className="text-2xl tracking-tight">
+                <span className="text-[#b05878]">piggy</span><span className="text-[#57886c]">.ai</span>
+              </div>
+              <p className="text-xs text-[#5a5a5a]">brutally honest financial twin</p>
             </div>
-            <p className="text-xs text-[#5a5a5a] mt-0.5">brutally honest financial twin</p>
           </button>
         </div>
 
