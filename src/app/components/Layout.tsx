@@ -3,6 +3,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router';
 import { LayoutDashboard, Bot, Clock, User, Upload, MessageCircle, LogOut } from 'lucide-react';
 import { PigMascot } from './PigMascot';
 import { ChatBot } from './ChatBot';
+import { useAuth } from '../auth';
 
 function PigIcon({ className }: { className?: string }) {
   return (
@@ -27,12 +28,13 @@ const navLinks = [
 
 export function Layout() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [chatOpen, setChatOpen] = useState(false);
 
   return (
     <div className="size-full flex bg-[#f5f5f0] text-[#1a1a1a]">
       {/* ── Sidebar — desktop ── */}
-      <aside className="hidden md:flex flex-col w-56 bg-white border-r border-[#e0e0e0] shrink-0">
+      <aside className="hidden md:flex flex-col w-56 bg-white border-r border-[#e0e0e0] shrink-0 h-screen sticky top-0">
         {/* Logo */}
         <div className="p-4 border-b border-[#e0e0e0]">
           <button
@@ -117,15 +119,18 @@ export function Layout() {
             }
           >
             <div className="w-7 h-7 rounded-full bg-[#57886c] flex items-center justify-center text-white text-xs shrink-0">
-              A
+              {user?.name?.[0]?.toUpperCase() ?? 'U'}
             </div>
             <div className="min-w-0">
-              <div className="text-[#1a1a1a] text-sm truncate">Alex Chen</div>
+              <div className="text-[#1a1a1a] text-sm truncate">{user?.name ?? 'Profile'}</div>
               <div className="text-xs text-[#5a5a5a]">View Profile</div>
             </div>
           </NavLink>
           {/* Sign Out — directly under View Profile */}
-          <button className="flex items-center gap-3 w-full px-3 py-2 mt-0.5 rounded-lg text-sm text-[#5a5a5a] hover:bg-[#f5f5f0] hover:text-[#c0392b] transition-colors">
+          <button
+            onClick={() => { logout(); navigate('/login'); }}
+            className="flex items-center gap-3 w-full px-3 py-2 mt-0.5 rounded-lg text-sm text-[#5a5a5a] hover:bg-[#f5f5f0] hover:text-[#c0392b] transition-colors"
+          >
             <LogOut className="w-4 h-4 shrink-0" />
             Sign Out
           </button>
@@ -141,7 +146,7 @@ export function Layout() {
       <div
         className={`
           flex flex-col border-l border-[#e0e0e0] bg-white
-          transition-all duration-300 shrink-0
+          transition-all duration-300 shrink-0 h-screen sticky top-0
           ${chatOpen ? 'w-full md:w-80' : 'w-0 overflow-hidden'}
           ${chatOpen ? 'fixed inset-0 z-40 md:relative md:inset-auto md:z-auto' : ''}
         `}
