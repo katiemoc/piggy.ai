@@ -127,6 +127,7 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Lexend', sans-serif;
+  }
 
   /**
   * Default typography styles for HTML elements (h1-h4, p, label, button, input).
