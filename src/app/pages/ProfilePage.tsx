@@ -68,7 +68,7 @@ export function ProfilePage() {
   const avgScore = Math.round(healthHistory.reduce((a, b) => a + b.score, 0) / healthHistory.length);
 
   return (
-    <div className="p-6 max-w-4xl">
+    <div className="p-6 w-full">
       <div className="mb-8">
         <h2 className="text-2xl tracking-tight">Profile</h2>
         <p className="text-[#5a5a5a] text-sm mt-1">All the nitty gritty — your settings, history, and data</p>
