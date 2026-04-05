@@ -24,7 +24,7 @@ Return ONLY a raw JSON array (no markdown, no explanation) in this exact shape:
     "description": "merchant or payee name",
     "amount": 0.00,
     "type": "debit" or "credit",
-    "category": "one of: Food & Dining, Shopping, Transport, Housing, Subscriptions, Income, Transfer, Other"
+    "category": "one of: Food & Dining, Shopping, Transport, Housing, Subscriptions, Income, Other"
   }
 ]
 Include ALL transactions found. Positive amounts only — use "type" to distinguish debits vs credits.
