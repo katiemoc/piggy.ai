@@ -96,7 +96,8 @@ export function SignupPage() {
   const passwordsMismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
   return (
-    <div className="min-h-screen flex text-[#1a1a1a] bg-[#f5f5f0]">
+    <div className="min-h-screen flex justify-center bg-[#f5f5f0] text-[#1a1a1a]">
+      <div className="flex w-full max-w-5xl min-h-screen">
       {/* ── Left branding panel (desktop only) ── */}
       <div className="hidden lg:flex lg:w-[44%] flex-col items-center justify-center p-12 relative overflow-hidden shrink-0">
 
@@ -328,6 +329,7 @@ export function SignupPage() {
             </Link>
           </p>
         </div>
+      </div>
       </div>
     </div>
   );
