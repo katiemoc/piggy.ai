@@ -327,7 +327,7 @@ export function parseTransactions(output: string, bank: string): Transaction[] {
       description: t.description || t.merchant || "",
       amount: Math.abs(parseFloat(t.amount) || 0),
       type: t.type === "credit" ? "credit" : "debit",
-      category: t.category || categorize(t.description || ""),
+      category: normalizeCategory(t.category || categorize(t.description || "")),
       bank,
     }));
   } catch {
@@ -335,14 +335,98 @@ export function parseTransactions(output: string, bank: string): Transaction[] {
   }
 }
 
-function categorize(description: string): string {
+// ── Canonical categories ──────────────────────────────────────────────────────
+
+export const CANONICAL_CATEGORIES = [
+  "Food & Dining",
+  "Housing",
+  "Shopping",
+  "Transport",
+  "Subscriptions",
+  "Income",
+  "Other",
+] as const;
+
+export type Category = (typeof CANONICAL_CATEGORIES)[number];
+
+/**
+ * Maps any raw category string (from Gemini, BrowserUse, or CSV) to one of
+ * the 7 canonical categories. Handles real-world bank statement variants like
+ * "Groceries", "Supermarket", "Bills", "Mortgage", "Cash Withdrawal", etc.
+ */
+export function normalizeCategory(raw: string): Category {
+  if (!raw) return "Other";
+  const c = raw.trim().toLowerCase();
+
+  // Already canonical — fast path
+  const exact: Record<string, Category> = {
+    "food & dining": "Food & Dining",
+    "housing":       "Housing",
+    "shopping":      "Shopping",
+    "transport":     "Transport",
+    "transportation":"Transport",
+    "subscriptions": "Subscriptions",
+    "subscription":  "Subscriptions",
+    "income":        "Income",
+    "other":         "Other",
+  };
+  if (exact[c]) return exact[c];
+
+  // Food & Dining
+  if (/grocer|grocery|supermarket|food|dining|restaurant|cafe|coffee|meal|bakery|diner|sushi|pizza|taco|doordash|grubhub|chipotle|mcdonald|starbucks|tim horton/.test(c))
+    return "Food & Dining";
+
+  // Housing
+  if (/mortgage|rent|landlord|apartment|condo|property tax|strata|hydro|utility|utilities|electric|water bill|heat|home insurance/.test(c))
+    return "Housing";
+
+  // Transport
+  if (/transport|auto & transport|automobile|vehicle|car payment|gas station|fuel|parking|transit|bus pass|train|subway|uber|lyft|taxi|muni|bart|metro/.test(c))
+    return "Transport";
+
+  // Shopping
+  if (/shopping|retail|merchandise|electronics|clothing|apparel|department|amazon|walmart|target|costco|ebay|etsy|best buy|hardware/.test(c))
+    return "Shopping";
+
+  // Subscriptions
+  if (/subscri|streaming|software|membership|netflix|spotify|hulu|disney|youtube|prime|apple music|icloud|gym|fitness club/.test(c))
+    return "Subscriptions";
+
+  // Income — payroll, deposits, refunds paid back to the account
+  if (/income|payroll|salary|wages|paycheck|direct deposit|freelance|e-transfer in|refund|rebate|cashback|interest earned|dividend/.test(c))
+    return "Income";
+
+  // Everything else: fees, ATM, transfers, insurance, cheques, bills, etc.
+  return "Other";
+}
+
+/**
+ * Fallback categorizer when no category is provided at all — uses the
+ * transaction description to infer a canonical category.
+ * Handles real bank statement descriptions like "Interac Purchase - SUPERMARKET".
+ */
+function categorize(description: string): Category {
   const d = description.toLowerCase();
-  if (/paycheck|salary|direct deposit|income|freelance/.test(d)) return "Income";
-  if (/rent|apartment|landlord|mortgage/.test(d)) return "Housing";
-  if (/restaurant|mcdonald|chipotle|doordash|grubhub|coffee|starbucks|cafe|diner|sushi|pizza|taco/.test(d)) return "Food & Dining";
-  if (/uber|lyft|bart|muni|metro|gas|shell|chevron|exxon|bp|parking|transit/.test(d)) return "Transport";
-  if (/amazon|walmart|target|costco|ebay|etsy|shop|store/.test(d)) return "Shopping";
-  if (/netflix|spotify|hulu|apple|disney|youtube|prime|subscription/.test(d)) return "Subscriptions";
+
+  // Income
+  if (/payroll deposit|payroll|salary|direct deposit|e-transfer in|freelance/.test(d)) return "Income";
+
+  // Housing
+  if (/mortgage|rent|landlord|apartment|hydro|utilities/.test(d)) return "Housing";
+
+  // Food & Dining — check merchant keyword after common prefixes like "Interac Purchase - "
+  if (/supermarket|grocery|grocer|restaurant|mcdonald|chipotle|doordash|grubhub|coffee|starbucks|cafe|diner|sushi|pizza|taco|tim horton/.test(d)) return "Food & Dining";
+
+  // Transport
+  if (/uber|lyft|bart|muni|metro|gas station|fuel|shell|chevron|exxon|bp|parking|transit/.test(d)) return "Transport";
+
+  // Shopping — electronics, retail, etc.
+  if (/electronics|amazon|walmart|target|costco|ebay|etsy|best buy|shop|store|retail/.test(d)) return "Shopping";
+
+  // Subscriptions
+  if (/netflix|spotify|hulu|apple|disney|youtube|prime|subscription|membership/.test(d)) return "Subscriptions";
+
+  // ATM, fees, transfers, insurance, cheques, bill payments → Other
   return "Other";
 }
 
@@ -418,7 +502,7 @@ export function ingestCSVString(csv: string, bank = "Test Bank"): Transaction[] 
       description: row.description || "",
       amount: Math.abs(parseFloat(row.amount) || 0),
       type: row.type === "credit" ? "credit" : "debit",
-      category: row.category || categorize(row.description || ""),
+      category: normalizeCategory(row.category || categorize(row.description || "")),
       bank: row.bank || bank,
     };
   });
