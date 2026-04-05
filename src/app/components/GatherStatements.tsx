@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Building2, Loader2, CheckCircle2, ExternalLink, AlertCircle } from "lucide-react";
 import {
-  createBankTask, createDemoLoginTask, pollUntilDone, stopTask,
+  createBankTask, createDemoLoginTask, pollUntilDone, stopTask, resumeTask,
   parseTransactions, saveTransactionsToStorage,
   transactionsToCSV, type SessionStatus, type Transaction
 } from "../services/browserUseService";
@@ -33,6 +33,8 @@ export default function GatherStatements({ onClose }: { onClose: () => void }) {
   const [bankTasks, setBankTasks] = useState<BankTaskState[]>([]);
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   const [activeLiveUrl, setActiveLiveUrl] = useState<string | null>(null);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [isResuming, setIsResuming] = useState(false);
   const activeSessionRef = useRef<string | null>(null);
 
   // Stop any active session when the component unmounts
@@ -66,6 +68,7 @@ export default function GatherStatements({ onClose }: { onClose: () => void }) {
         // Create task
         taskId = bank === "__demo__" ? await createDemoLoginTask() : await createBankTask(bank);
         activeSessionRef.current = taskId;
+        setActiveSessionId(taskId);
         setBankTasks(prev => prev.map(t =>
           t.bank === bank ? { ...t, taskId, status: "running" } : t
         ));
@@ -82,6 +85,7 @@ export default function GatherStatements({ onClose }: { onClose: () => void }) {
         });
 
         activeSessionRef.current = null;
+        setActiveSessionId(null);
 
         // Parse output
         const txns = parseTransactions(finalStatus.output || "", bank);
@@ -96,6 +100,7 @@ export default function GatherStatements({ onClose }: { onClose: () => void }) {
         // Stop the session so it doesn't count against the concurrent limit
         if (taskId) stopTask(taskId);
         activeSessionRef.current = null;
+        setActiveSessionId(null);
         setBankTasks(prev => prev.map(t =>
           t.bank === bank ? { ...t, status: "failed", error: err.message } : t
         ));
@@ -103,6 +108,18 @@ export default function GatherStatements({ onClose }: { onClose: () => void }) {
     }
 
     setStep("done");
+  };
+
+  const handleResume = async () => {
+    if (!activeSessionId) return;
+    setIsResuming(true);
+    try {
+      await resumeTask(activeSessionId);
+    } catch (err) {
+      console.error("Resume failed:", err);
+    } finally {
+      setIsResuming(false);
+    }
   };
 
   const handleSave = () => {
@@ -207,23 +224,60 @@ export default function GatherStatements({ onClose }: { onClose: () => void }) {
         {/* STEP 2: Running */}
         {step === "running" && (
           <div className="p-6 space-y-4">
-            <p className="text-sm text-gray-600">
-              Processing your banks one at a time. 
-              <strong> Click the live view link to log in when prompted.</strong>
-            </p>
+            {/* Is any bank currently paused / waiting for login? */}
+            {bankTasks.some(t => t.status === "paused") ? (
+              <div className="space-y-3">
+                <p className="text-sm text-gray-700 font-medium">
+                  ⏸ Waiting for you to log in
+                </p>
+                <p className="text-xs text-gray-500">
+                  Open the live browser below, complete your login (including any 2FA), then click <strong>Continue</strong>.
+                </p>
 
-            {/* Live Browser Link */}
-            {activeLiveUrl && (
-              <a
-                href={activeLiveUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 p-3 bg-[#57886c]/10 border border-[#57886c]/30
-                           rounded-xl text-[#57886c] text-sm font-medium hover:bg-[#57886c]/20 transition-colors"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Open Live Browser → Log in here
-              </a>
+                {activeLiveUrl && (
+                  <a
+                    href={activeLiveUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 p-3 bg-[#57886c]/10 border border-[#57886c]/30
+                               rounded-xl text-[#57886c] text-sm font-medium hover:bg-[#57886c]/20 transition-colors"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Open Live Browser → Log in here
+                  </a>
+                )}
+
+                <button
+                  onClick={handleResume}
+                  disabled={isResuming}
+                  className="w-full py-3 rounded-xl bg-[#57886c] text-white font-semibold
+                             hover:bg-[#466060] disabled:opacity-50 disabled:cursor-not-allowed
+                             transition-colors font-['Lexend'] flex items-center justify-center gap-2"
+                >
+                  {isResuming
+                    ? <><Loader2 className="w-4 h-4 animate-spin" /> Resuming…</>
+                    : "✓ I've logged in — Continue"}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-gray-600">
+                  Processing your banks one at a time.
+                  <strong> Click the live view link to log in when prompted.</strong>
+                </p>
+                {activeLiveUrl && (
+                  <a
+                    href={activeLiveUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 p-3 bg-[#57886c]/10 border border-[#57886c]/30
+                               rounded-xl text-[#57886c] text-sm font-medium hover:bg-[#57886c]/20 transition-colors"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Open Live Browser → Log in here
+                  </a>
+                )}
+              </div>
             )}
 
             {/* Bank Status List */}
@@ -239,10 +293,10 @@ export default function GatherStatements({ onClose }: { onClose: () => void }) {
                     </span>
                   </div>
                   <span className="text-xs text-gray-400 capitalize">
-                    {task.status === "running" ? "Agent working..." :
-                     task.status === "paused" ? "⏸ Waiting for login" :
+                    {task.status === "running"  ? "Agent working..." :
+                     task.status === "paused"   ? "⏸ Waiting for login" :
                      task.status === "finished" ? `✓ ${task.transactions.length} transactions` :
-                     task.status === "failed" ? "Failed" : "Queued"}
+                     task.status === "failed"   ? "Failed" : "Queued"}
                   </span>
                 </div>
               ))}

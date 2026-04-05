@@ -34,9 +34,10 @@ STEP 1 — Navigate to login:
 Go to https://online.citibank.com/US/JPS/portal/Index.do
 Click "Sign On" in the top right corner.
 
-STEP 2 — Wait for the user:
-PAUSE and wait for the user to fully complete login, including any 2-step verification or OTP.
-Do NOT proceed until you see the account dashboard with account balances visible.
+STEP 2 — Wait for the user to log in:
+Keep the browser open on the login page. Do NOT stop, pause, or exit the session.
+Watch the page continuously for up to 5 minutes.
+Proceed ONLY once you see the account dashboard with account balances visible — this means the user has fully completed login including any 2FA or OTP prompts.
 
 STEP 3 — Find the right account:
 On the dashboard, locate the primary checking or savings account.
@@ -68,9 +69,10 @@ STEP 1 — Navigate to login:
 Go to https://secure.chase.com/web/auth/dashboard
 If redirected, click "Sign In" in the top right corner.
 
-STEP 2 — Wait for the user:
-PAUSE and wait for the user to fully complete login, including any 2-factor authentication or push notification approval.
-Do NOT proceed until the Chase account dashboard is fully loaded and account tiles are visible.
+STEP 2 — Wait for the user to log in:
+Keep the browser open on the login page. Do NOT stop, pause, or exit the session.
+Watch the page continuously for up to 5 minutes.
+Proceed ONLY once the Chase account dashboard is fully loaded and account tiles are visible — this means the user has completed login including any 2FA push notification.
 
 STEP 3 — Select the account:
 On the dashboard, click on the primary checking account (or the first account listed if multiple exist).
@@ -104,9 +106,10 @@ Go to https://www.golden1.com
 Click "Online Banking Login" in the top navigation bar.
 You will be redirected to the Golden 1 online banking portal.
 
-STEP 2 — Wait for the user:
-PAUSE and wait for the user to fully complete login, including any security questions or one-time passcode.
-Do NOT proceed until the account summary page with balances is visible.
+STEP 2 — Wait for the user to log in:
+Keep the browser open on the login page. Do NOT stop, pause, or exit the session.
+Watch the page continuously for up to 5 minutes.
+Proceed ONLY once the account summary page with balances is visible — this means the user has completed login including any security questions or OTP.
 
 STEP 3 — Open transaction history:
 Click on the primary checking or savings account name to open its detail view.
@@ -139,9 +142,10 @@ STEP 1 — Navigate to login:
 Go to https://www.bankofamerica.com
 Click "Sign In" in the top right corner, then select "Online Banking".
 
-STEP 2 — Wait for the user:
-PAUSE and wait for the user to fully complete login, including any 2-step verification, Erica prompts, or security challenges.
-Do NOT proceed until the main accounts overview page is loaded and account balances are visible.
+STEP 2 — Wait for the user to log in:
+Keep the browser open on the login page. Do NOT stop, pause, or exit the session.
+Watch the page continuously for up to 5 minutes.
+Proceed ONLY once the main accounts overview page is loaded and account balances are visible — this means the user has completed login including any 2-step verification or Erica prompts.
 
 STEP 3 — Open the account:
 Click on the primary checking account (labeled "Bank of America Advantage" or similar).
@@ -173,9 +177,10 @@ STEP 1 — Navigate to login:
 Go to https://www.wellsfargo.com
 Click "Sign On" in the top right corner.
 
-STEP 2 — Wait for the user:
-PAUSE and wait for the user to fully complete sign-on, including any 2-step verification code sent by text or email.
-Do NOT proceed until the Wells Fargo account summary page with account balances is fully loaded.
+STEP 2 — Wait for the user to log in:
+Keep the browser open on the login page. Do NOT stop, pause, or exit the session.
+Watch the page continuously for up to 5 minutes.
+Proceed ONLY once the Wells Fargo account summary page with account balances is fully loaded — this means the user has completed sign-on including any 2-step verification code.
 
 STEP 3 — Open the account:
 Click on the primary checking account from the account summary list.
@@ -269,6 +274,17 @@ export async function stopTask(sessionId: string): Promise<void> {
     });
   } catch {
     // best-effort — don't throw if cleanup fails
+  }
+}
+
+export async function resumeTask(sessionId: string): Promise<void> {
+  const response = await fetch(`${BU_API}/sessions/${sessionId}/resume`, {
+    method: "PUT",
+    headers,
+  });
+  if (!response.ok) {
+    const errBody = await response.text();
+    throw new Error(`Failed to resume session (${response.status}): ${errBody}`);
   }
 }
 
