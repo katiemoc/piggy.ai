@@ -94,6 +94,7 @@ export function LoginPage() {
             <div className="mb-6">
               <button
                 onClick={() => {
+                  const tokenBefore = localStorage.getItem('piggy_token');
                   const popup = window.open(
                     `${import.meta.env.VITE_API_URL}/api/auth/google`,
                     'google-auth',
@@ -103,7 +104,7 @@ export function LoginPage() {
                     if (popup?.closed) {
                       clearInterval(timer);
                       const token = localStorage.getItem('piggy_token');
-                      if (token) navigate('/upload');
+                      if (token && token !== tokenBefore) navigate('/upload');
                     }
                   }, 500);
                 }}
