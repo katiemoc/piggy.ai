@@ -48,7 +48,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
 export function ProfilePage() {
   const navigate = useNavigate();
   const { tone: preferredTone, setTone: setPreferredTone } = useTone();
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const [currency, setCurrency] = useState('USD ($)');
   const [savingsTarget, setSavingsTarget] = useState(30);
   const [editingName, setEditingName] = useState(false);
@@ -91,7 +91,7 @@ export function ProfilePage() {
                   autoFocus
                 />
                 <button
-                  onClick={() => { setName(nameInput); setEditingName(false); }}
+                  onClick={() => { setName(nameInput); updateUser({ name: nameInput }); setEditingName(false); }}
                   className="text-[#57886c]"
                 >
                   <Check className="w-4 h-4" />
