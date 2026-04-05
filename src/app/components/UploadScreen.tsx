@@ -22,14 +22,18 @@ export function UploadScreen({ onUpload }: UploadScreenProps) {
     setError(null);
     try {
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
-      if (!apiKey) throw new Error("Missing VITE_GEMINI_API_KEY in .env");
+      if (!apiKey) throw new Error("Gemini API Key is completely empty! Please ensure VITE_GEMINI_API_KEY is properly configured on your server.");
+      
+      console.log("Found API Key starting with:", apiKey.substring(0, 4));
       
       const base64 = await fileToBase64(file);
       const txns = await parseBankStatementPDF(base64, apiKey);
       saveTransactionsToStorage(txns);
       onUpload(false);
     } catch (err: any) {
+      console.error("Gemini Upload Parser Error:", err);
       setError(err.message || "Failed to parse PDF");
+    } finally {
       setIsProcessing(false);
     }
   };

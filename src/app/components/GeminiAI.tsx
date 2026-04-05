@@ -2,7 +2,16 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2, UploadCloud, CheckCircle, FileText, ArrowRight } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { fileToBase64 } from '../utils/geminiFileUtils';
-import { parseBankStatementPDF, sendGeminiChat, DashboardData, ChatMessage } from '../services/geminiService';
+import { parseBankStatementPDF, sendGeminiChat, ChatMessage } from '../services/geminiService';
+
+export interface DashboardData {
+  income: number;
+  spent: number;
+  net: number;
+  savingsRate: number;
+  spendingByCategory: Record<string, number>;
+  balanceOverTime: Record<string, number>;
+}
 
 const PIE_COLORS = ['#4285F4', '#34A853', '#FBBC05', '#EA4335', '#b05878', '#57886c', '#8e8e8e'];
 
@@ -41,8 +50,21 @@ export const GeminiAIView: React.FC<GeminiIntegrationProps> = ({ apiKey }) => {
     setError(null);
     try {
       const base64Data = await fileToBase64(file);
-      const parsedData = await parseBankStatementPDF(base64Data, apiKey);
-      setData(parsedData);
+      const rawTxns = await parseBankStatementPDF(base64Data, apiKey);
+      
+      const income = rawTxns.filter(t => t.type === 'credit').reduce((a, t) => a + t.amount, 0);
+      const spent = rawTxns.filter(t => t.type === 'debit').reduce((a, t) => a + t.amount, 0);
+      const net = income - spent;
+      const savingsRate = income > 0 ? (net / income) * 100 : 0;
+      
+      const spendingByCategory: Record<string, number> = {};
+      rawTxns.filter(t => t.type === 'debit').forEach(t => {
+         spendingByCategory[t.category || "Other"] = (spendingByCategory[t.category || "Other"] || 0) + t.amount;
+      });
+
+      setData({
+        income, spent, net, savingsRate, spendingByCategory, balanceOverTime: { "Now": net }
+      });
       
       // Auto-start a chat conversation with context
       setMessages([{
@@ -63,7 +85,8 @@ export const GeminiAIView: React.FC<GeminiIntegrationProps> = ({ apiKey }) => {
     setMessages(prev => [...prev, { role: 'user', parts: [{ text: userMsg }] }]);
     setIsChatLoading(true);
     try {
-      const resp = await sendGeminiChat(messages, userMsg, apiKey);
+      const instruction = "You are a brutally honest, no-nonsense financial assistant named Piggy. Your role is to help the user understand their finances and mock them slightly if they overspend.";
+      const resp = await sendGeminiChat(messages, userMsg, instruction, apiKey);
       setMessages(prev => [...prev, { role: 'model', parts: [{ text: resp }] }]);
     } catch (err: any) {
       setMessages(prev => [...prev, { role: 'model', parts: [{ text: '⚠️ Error: Could not reach Gemini.' }] }]);

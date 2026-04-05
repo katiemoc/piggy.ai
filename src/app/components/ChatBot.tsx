@@ -293,7 +293,8 @@ export function ChatBot({ onClose }: ChatBotProps) {
     try {
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
       if (!apiKey) {
-         setMessages((prev) => [...prev, { id: uid(), role: 'bot', text: 'Error: Missing VITE_GEMINI_API_KEY in .env', ts: new Date() }]);
+         setMessages((prev) => [...prev, { id: uid(), role: 'bot', text: 'Error: Integration API Key is completely empty! Please ensure VITE_GEMINI_API_KEY is configured correctly.', ts: new Date() }]);
+         setThinking(false);
          return;
       }
       
@@ -307,8 +308,9 @@ export function ChatBot({ onClose }: ChatBotProps) {
       
       const reply = await sendGeminiChat(hist, text, instruction, apiKey);
       setMessages((prev) => [...prev, { id: uid(), role: 'bot', text: reply, ts: new Date() }]);
-    } catch {
-      setMessages((prev) => [...prev, { id: uid(), role: 'bot', text: 'Connection error — try again in a moment!', ts: new Date() }]);
+    } catch (err: any) {
+      console.error("Gemini API Error in ChatBot:", err);
+      setMessages((prev) => [...prev, { id: uid(), role: 'bot', text: `Connection error — ${err.message || 'try again in a moment!'}`, ts: new Date() }]);
     } finally {
       setThinking(false);
     }
