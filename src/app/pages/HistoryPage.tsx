@@ -119,11 +119,10 @@ export function HistoryPage() {
           <button
             key={m}
             onClick={() => setSelectedMonth(m)}
-            className={`px-4 py-2 rounded-full text-sm border transition-colors ${
-              selectedMonth === m
+            className={`px-4 py-2 rounded-full text-sm border transition-colors ${selectedMonth === m
                 ? 'bg-[#57886c] text-white border-[#57886c]'
                 : 'bg-white border-[#e0e0e0] text-[#5a5a5a] hover:border-[#57886c]'
-            }`}
+              }`}
           >
             {m}
           </button>

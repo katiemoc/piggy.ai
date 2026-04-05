@@ -3,8 +3,7 @@ import {
   User, Bell, Shield, Download, Trash2, ChevronRight,
   CreditCard, Target, Palette, Globe, LogOut, Edit2, Check,
 } from 'lucide-react';
-
-type Tone = 'immigrant' | 'financebro' | 'bestie';
+import { useTone, Tone } from '../context/ToneContext';
 
 const toneOptions: { id: Tone; emoji: string; label: string }[] = [
   { id: 'immigrant', emoji: '😤', label: 'Immigrant Parent' },
@@ -45,7 +44,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
 }
 
 export function ProfilePage() {
-  const [preferredTone, setPreferredTone] = useState<Tone>('immigrant');
+  const { tone: preferredTone, setTone: setPreferredTone } = useTone();
   const [currency, setCurrency] = useState('USD ($)');
   const [savingsTarget, setSavingsTarget] = useState(30);
   const [editingName, setEditingName] = useState(false);
@@ -106,6 +105,11 @@ export function ProfilePage() {
             <div className="text-xs text-[#5a5a5a] bg-[#f5f5f0] px-3 py-1 rounded-full">
               Member since Nov 2025
             </div>
+            {/* Sign Out — lives here, not in Data & Privacy */}
+            <button className="flex items-center gap-2 w-full justify-center px-4 py-2 border border-[#e0e0e0] rounded-lg text-sm text-[#5a5a5a] hover:bg-[#f5f5f0] hover:text-[#c0392b] hover:border-[#c0392b]/30 transition-colors">
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </button>
           </div>
 
           {/* Financial health score */}
@@ -148,15 +152,14 @@ export function ProfilePage() {
             <div className="mb-5">
               <div className="text-sm mb-2">Default AI Tone</div>
               <div className="flex gap-2 flex-wrap">
-                {toneOptions.map((t) => (
+                {(toneOptions as { id: Tone; emoji: string; label: string }[]).map((t) => (
                   <button
                     key={t.id}
                     onClick={() => setPreferredTone(t.id)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${
-                      preferredTone === t.id
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${preferredTone === t.id
                         ? 'bg-[#57886c]/15 border-[#57886c] text-[#57886c]'
                         : 'border-[#e0e0e0] text-[#5a5a5a] hover:border-[#57886c]'
-                    }`}
+                      }`}
                   >
                     <span>{t.emoji}</span>
                     {t.label}
@@ -246,7 +249,7 @@ export function ProfilePage() {
             </div>
           </div>
 
-          {/* Data & Privacy */}
+          {/* Data & Privacy — sign out removed from here */}
           <div className="bg-white border border-[#e0e0e0] rounded-lg p-6">
             <h3 className="text-base mb-1 flex items-center gap-2">
               <Shield className="w-4 h-4 text-[#57886c]" />
@@ -273,10 +276,6 @@ export function ProfilePage() {
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-[#5a5a5a]" />
-              </button>
-              <button className="flex items-center gap-3 w-full p-3 bg-[#f5f5f0] rounded-lg hover:bg-[#e8e8e4] transition-colors text-[#5a5a5a]">
-                <LogOut className="w-4 h-4" />
-                <span className="text-sm">Sign Out</span>
               </button>
             </div>
           </div>

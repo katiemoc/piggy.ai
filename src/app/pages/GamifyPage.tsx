@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trophy, Flame, Target, Plus } from 'lucide-react';
+import { Trophy, Target, Plus } from 'lucide-react';
 
 const savingsRate = 26.2; // percent — drives pig size
 
@@ -10,7 +10,6 @@ const goals = [
 ];
 
 const achievements = [
-  { id: 1, emoji: '🔥', label: '7-Day Streak', desc: 'Logged finances 7 days in a row', earned: true },
   { id: 2, emoji: '🐷', label: 'First Oink', desc: 'Uploaded your first bank statement', earned: true },
   { id: 3, emoji: '💰', label: 'Saver Rookie', desc: 'Hit 20%+ savings rate', earned: true },
   { id: 4, emoji: '📊', label: 'Data Nerd', desc: 'Checked dashboard 10 times', earned: true },
@@ -83,8 +82,6 @@ function PigMascot({ savingsRate }: { savingsRate: number }) {
 }
 
 export function GamifyPage() {
-  const [streak] = useState(7);
-
   return (
     <div className="p-6">
       <div className="mb-8">
@@ -114,27 +111,6 @@ export function GamifyPage() {
                 <span>Max Chonk (40%+)</span>
               </div>
             </div>
-          </div>
-
-          {/* Streak */}
-          <div className="bg-white border border-[#e0e0e0] rounded-lg p-6">
-            <h3 className="text-base mb-4 flex items-center gap-2">
-              <Flame className="w-4 h-4 text-[#e8924a]" />
-              Current Streak
-            </h3>
-            <div className="flex items-end gap-2 mb-3">
-              <span className="text-5xl text-[#e8924a]">{streak}</span>
-              <span className="text-[#5a5a5a] mb-2">days</span>
-            </div>
-            <div className="flex gap-1">
-              {Array.from({ length: 7 }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`flex-1 h-2 rounded-full ${i < streak ? 'bg-[#e8924a]' : 'bg-[#e0e0e0]'}`}
-                />
-              ))}
-            </div>
-            <p className="text-xs text-[#5a5a5a] mt-2">Upload or check in daily to keep your streak!</p>
           </div>
         </div>
 
@@ -200,11 +176,10 @@ export function GamifyPage() {
               {achievements.map((a) => (
                 <div
                   key={a.id}
-                  className={`flex flex-col items-center text-center p-3 rounded-lg border transition-colors ${
-                    a.earned
+                  className={`flex flex-col items-center text-center p-3 rounded-lg border transition-colors ${a.earned
                       ? 'bg-[#57886c]/10 border-[#57886c]/30'
                       : 'bg-[#f5f5f0] border-[#e0e0e0] opacity-50'
-                  }`}
+                    }`}
                 >
                   <div className={`text-2xl mb-1 ${!a.earned && 'grayscale'}`}>{a.emoji}</div>
                   <div className="text-xs font-medium text-[#1a1a1a]">{a.label}</div>
