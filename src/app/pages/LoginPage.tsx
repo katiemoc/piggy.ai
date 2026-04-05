@@ -32,6 +32,8 @@ export function LoginPage() {
     }
   };
 
+
+  
   return (
     <div className="min-h-screen flex text-[#1a1a1a]">
       {/* ── Left branding panel (desktop only) ── */}
@@ -94,19 +96,18 @@ export function LoginPage() {
             <div className="mb-6">
               <button
                 onClick={() => {
-                  const tokenBefore = localStorage.getItem('piggy_token');
-                  const popup = window.open(
+                  window.open(
                     `${import.meta.env.VITE_API_URL}/api/auth/google`,
                     'google-auth',
                     'width=500,height=600,left=400,top=100'
                   );
-                  const timer = setInterval(() => {
-                    if (popup?.closed) {
-                      clearInterval(timer);
-                      const token = localStorage.getItem('piggy_token');
-                      if (token && token !== tokenBefore) navigate('/upload');
+                  const handler = (e: MessageEvent) => {
+                    if (e.data?.type === 'google-auth-success') {
+                      window.removeEventListener('message', handler);
+                      navigate('/upload');
                     }
-                  }, 500);
+                  };
+                  window.addEventListener('message', handler);
                 }}
                 className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-[#e0e0e0] rounded-lg hover:bg-[#f5f5f0] transition-colors text-sm text-[#1a1a1a]"
               >

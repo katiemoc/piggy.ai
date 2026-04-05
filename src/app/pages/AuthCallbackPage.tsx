@@ -14,12 +14,14 @@ export function AuthCallbackPage() {
     if (token && user) {
       loginWithToken(token, JSON.parse(user));
       if (window.opener) {
+        window.opener.postMessage({ type: 'google-auth-success' }, '*');
         window.close();
       } else {
         navigate('/upload');
       }
     } else {
       if (window.opener) {
+        window.opener.postMessage({ type: 'google-auth-failed' }, '*');
         window.close();
       } else {
         navigate('/login');
