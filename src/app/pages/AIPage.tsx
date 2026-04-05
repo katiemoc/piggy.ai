@@ -1,10 +1,9 @@
-import { useState } from 'react';
-import { Zap, TrendingUp, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { TrendingUp, AlertTriangle, CheckCircle, Info, Settings } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
 } from 'recharts';
-
-type Tone = 'immigrant' | 'financebro' | 'bestie';
+import { useTone, Tone } from '../context/ToneContext';
 
 const projectionData = [
   { month: 'Apr', actual: 7666, projected: null },
@@ -80,196 +79,178 @@ const analyses: Record<Tone, {
   },
 };
 
-export function AIPage() {
-  const [tone, setTone] = useState<Tone>('immigrant');
-  const [analyzed, setAnalyzed] = useState(false);
-  const analysis = analyses[tone];
+const toneLabels: Record<Tone, { emoji: string; label: string }> = {
+  immigrant:   { emoji: '😤', label: 'Immigrant Parent' },
+  financebro:  { emoji: '📈', label: 'Finance Bro' },
+  bestie:      { emoji: '💕', label: 'Supportive Bestie' },
+};
 
-  const tones: { id: Tone; emoji: string; label: string }[] = [
-    { id: 'immigrant', emoji: '😤', label: 'Immigrant Parent' },
-    { id: 'financebro', emoji: '📈', label: 'Finance Bro' },
-    { id: 'bestie', emoji: '💕', label: 'Supportive Bestie' },
-  ];
+export function AIPage() {
+  const { tone } = useTone();
+  const navigate = useNavigate();
+  const analysis = analyses[tone];
+  const toneLabel = toneLabels[tone];
 
   const scoreColor =
     analysis.score >= 70 ? '#57886c' : analysis.score >= 50 ? '#fbbf24' : '#c0392b';
 
   return (
-    <div className="p-6">
-      <div className="mb-8">
-        <h2 className="text-2xl tracking-tight">AI Analysis</h2>
-        <p className="text-[#5a5a5a] text-sm mt-1">Your finances, brutally dissected — choose your vibe</p>
-      </div>
-
-      {/* Tone selector */}
-      <div className="bg-white border border-[#e0e0e0] rounded-lg p-6 mb-6">
-        <h3 className="text-base mb-4">Choose Your Advisor Tone</h3>
-        <div className="flex gap-3 flex-wrap mb-6">
-          {tones.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => { setTone(t.id); setAnalyzed(false); }}
-              className={`flex-1 min-w-[140px] px-4 py-3 rounded-lg transition-colors border ${
-                tone === t.id
-                  ? 'bg-[#57886c]/15 border-[#57886c] text-[#57886c]'
-                  : 'bg-[#f5f5f0] border-[#d0d0d0] text-[#5a5a5a] hover:border-[#57886c]'
-              }`}
-            >
-              <div className="text-2xl mb-1">{t.emoji}</div>
-              <div className="text-sm">{t.label}</div>
-            </button>
-          ))}
+    <div className="p-6 max-w-4xl">
+      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="text-2xl tracking-tight">AI Analysis</h2>
+          <p className="text-[#5a5a5a] text-sm mt-1">Your finances, brutally dissected</p>
         </div>
 
-        {!analyzed ? (
-          <button
-            onClick={() => setAnalyzed(true)}
-            className="w-full bg-[#57886c] text-white px-6 py-3 rounded-lg hover:bg-[#466060] transition-colors flex items-center justify-center gap-2"
-          >
-            <Zap className="w-5 h-5" />
-            Analyze My Finances
-          </button>
-        ) : (
-          <div className="flex flex-col sm:flex-row gap-6">
-            {/* Score */}
-            <div className="flex flex-col items-center justify-center bg-[#f5f5f0] border border-[#e0e0e0] rounded-lg p-6 min-w-[140px]">
-              <div className="text-5xl mb-1" style={{ color: scoreColor }}>{analysis.score}</div>
-              <div className="text-xs text-[#5a5a5a]">/ 100</div>
-              <div className="mt-3 w-full bg-[#e0e0e0] rounded-full h-1.5">
-                <div
-                  className="h-1.5 rounded-full transition-all"
-                  style={{ width: `${analysis.score}%`, backgroundColor: scoreColor }}
-                />
-              </div>
+        {/* Active tone badge + profile link */}
+        <button
+          onClick={() => navigate('/profile')}
+          className="flex items-center gap-2 px-3 py-2 bg-white border border-[#e0e0e0] rounded-lg hover:border-[#57886c] transition-colors text-sm text-[#5a5a5a] shrink-0"
+        >
+          <span>{toneLabel.emoji}</span>
+          <span>{toneLabel.label}</span>
+          <Settings className="w-3.5 h-3.5 ml-1 text-[#b0b0b0]" />
+        </button>
+      </div>
+
+      {/* Score + Verdict */}
+      <div className="bg-white border border-[#e0e0e0] rounded-lg p-6 mb-6">
+        <div className="flex flex-col sm:flex-row gap-6">
+          {/* Score */}
+          <div className="flex flex-col items-center justify-center bg-[#f5f5f0] border border-[#e0e0e0] rounded-lg p-6 min-w-[140px]">
+            <div className="text-5xl mb-1" style={{ color: scoreColor }}>{analysis.score}</div>
+            <div className="text-xs text-[#5a5a5a]">/ 100</div>
+            <div className="mt-3 w-full bg-[#e0e0e0] rounded-full h-1.5">
+              <div
+                className="h-1.5 rounded-full transition-all"
+                style={{ width: `${analysis.score}%`, backgroundColor: scoreColor }}
+              />
             </div>
-            {/* Verdict */}
-            <div className="flex-1">
-              <p className="text-base mb-1" style={{ color: scoreColor }}>"{analysis.verdict}"</p>
-              <p className="text-xs text-[#5a5a5a] mb-4">Based on April 2026 · Sample Data</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <div className="flex items-center gap-1 text-xs text-[#57886c] mb-2">
-                    <CheckCircle className="w-3 h-3" /> What you're doing right
-                  </div>
-                  {analysis.good.map((g, i) => (
-                    <p key={i} className="text-xs text-[#1a1a1a] mb-1.5">✓ {g}</p>
-                  ))}
+          </div>
+
+          {/* Verdict */}
+          <div className="flex-1">
+            <p className="text-base mb-1" style={{ color: scoreColor }}>"{analysis.verdict}"</p>
+            <p className="text-xs text-[#5a5a5a] mb-4">Based on April 2026 · Sample Data</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <div className="flex items-center gap-1 text-xs text-[#57886c] mb-2">
+                  <CheckCircle className="w-3 h-3" /> What you're doing right
                 </div>
-                <div>
-                  <div className="flex items-center gap-1 text-xs text-[#c0392b] mb-2">
-                    <AlertTriangle className="w-3 h-3" /> What needs work
-                  </div>
-                  {analysis.bad.map((b, i) => (
-                    <p key={i} className="text-xs text-[#1a1a1a] mb-1.5">✗ {b}</p>
-                  ))}
+                {analysis.good.map((g, i) => (
+                  <p key={i} className="text-xs text-[#1a1a1a] mb-1.5">✓ {g}</p>
+                ))}
+              </div>
+              <div>
+                <div className="flex items-center gap-1 text-xs text-[#c0392b] mb-2">
+                  <AlertTriangle className="w-3 h-3" /> What needs work
                 </div>
+                {analysis.bad.map((b, i) => (
+                  <p key={i} className="text-xs text-[#1a1a1a] mb-1.5">✗ {b}</p>
+                ))}
               </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
 
-      {analyzed && (
-        <>
-          {/* 3 Specific Tips */}
-          <div className="bg-white border border-[#e0e0e0] rounded-lg p-6 mb-6">
-            <h3 className="text-base mb-4 flex items-center gap-2">
-              <Zap className="w-4 h-4 text-[#57886c]" />
-              3 Specific Action Items
-            </h3>
-            <div className="flex flex-col gap-3">
-              {analysis.tips.map((tip, i) => (
-                <div key={i} className="flex gap-4 p-4 bg-[#f5f5f0] rounded-lg">
-                  <div className="w-6 h-6 rounded-full bg-[#57886c] text-white flex items-center justify-center text-xs shrink-0">
-                    {i + 1}
-                  </div>
-                  <p className="text-sm text-[#1a1a1a]">{tip}</p>
+      {/* 3 Action Items */}
+      <div className="bg-white border border-[#e0e0e0] rounded-lg p-6 mb-6">
+        <h3 className="text-base mb-4 flex items-center gap-2">
+          <span style={{ color: scoreColor }}>⚡</span>
+          3 Specific Action Items
+        </h3>
+        <div className="flex flex-col gap-3">
+          {analysis.tips.map((tip, i) => (
+            <div key={i} className="flex gap-4 p-4 bg-[#f5f5f0] rounded-lg">
+              <div className="w-6 h-6 rounded-full bg-[#57886c] text-white flex items-center justify-center text-xs shrink-0">
+                {i + 1}
+              </div>
+              <p className="text-sm text-[#1a1a1a]">{tip}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 6-Month Projection */}
+      <div className="bg-white border border-[#e0e0e0] rounded-lg p-6 mb-6">
+        <h3 className="text-base mb-1 flex items-center gap-2">
+          <TrendingUp className="w-4 h-4 text-[#57886c]" />
+          6-Month Balance Projection
+        </h3>
+        <p className="text-xs text-[#5a5a5a] mb-4">Assuming current savings rate of 26.2%</p>
+        <ResponsiveContainer width="100%" height={220}>
+          <LineChart data={projectionData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+            <XAxis dataKey="month" stroke="#5a5a5a" style={{ fontSize: '12px' }} />
+            <YAxis stroke="#5a5a5a" style={{ fontSize: '12px' }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+            <Tooltip
+              contentStyle={{ backgroundColor: '#fff', border: '1px solid #e0e0e0', borderRadius: '8px' }}
+              formatter={(v: number) => `$${v.toLocaleString()}`}
+            />
+            <ReferenceLine x="Apr" stroke="#5a5a5a" strokeDasharray="3 3" label={{ value: 'Today', position: 'top', fontSize: 10, fill: '#5a5a5a' }} />
+            <Line type="monotone" dataKey="actual" stroke="#57886c" strokeWidth={2} dot={{ fill: '#57886c', r: 4 }} connectNulls={false} isAnimationActive={false} name="Actual" />
+            <Line type="monotone" dataKey="projected" stroke="#57886c" strokeWidth={2} strokeDasharray="6 4" dot={{ fill: '#57886c', r: 4 }} connectNulls isAnimationActive={false} name="Projected" />
+          </LineChart>
+        </ResponsiveContainer>
+        <p className="text-xs text-[#5a5a5a] mt-3 text-center">
+          At this rate, you'll have <span className="text-[#57886c]">$21,500</span> by October 2026
+        </p>
+      </div>
+
+      {/* FICO Score */}
+      <div className="bg-white border border-[#e0e0e0] rounded-lg p-6">
+        <h3 className="text-base mb-4 flex items-center gap-2">
+          <Info className="w-4 h-4 text-[#57886c]" />
+          FICO Score Improvement
+        </h3>
+        <div className="flex flex-col sm:flex-row gap-6 items-start">
+          <div className="flex flex-col items-center bg-[#f5f5f0] border border-[#e0e0e0] rounded-lg p-5 min-w-[140px]">
+            <div className="text-xs text-[#5a5a5a] mb-1">Est. FICO Score</div>
+            <div className="text-4xl text-[#57886c]">712</div>
+            <div className="text-xs text-[#5a5a5a] mt-1">Good range</div>
+            <div className="mt-3 w-full">
+              {[
+                { label: 'Poor',       color: '#c0392b', range: '300–579' },
+                { label: 'Fair',       color: '#e8924a', range: '580–669' },
+                { label: 'Good',       color: '#fbbf24', range: '670–739' },
+                { label: 'Very Good',  color: '#81a684', range: '740–799' },
+                { label: 'Exceptional',color: '#57886c', range: '800–850' },
+              ].map((band) => (
+                <div key={band.label} className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: band.color }} />
+                  <div className="text-xs text-[#5a5a5a]">{band.label}</div>
                 </div>
               ))}
             </div>
           </div>
-
-          {/* 6-Month Projection */}
-          <div className="bg-white border border-[#e0e0e0] rounded-lg p-6 mb-6">
-            <h3 className="text-base mb-1 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-[#57886c]" />
-              6-Month Balance Projection
-            </h3>
-            <p className="text-xs text-[#5a5a5a] mb-4">Assuming current savings rate of 26.2%</p>
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={projectionData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                <XAxis dataKey="month" stroke="#5a5a5a" style={{ fontSize: '12px' }} />
-                <YAxis stroke="#5a5a5a" style={{ fontSize: '12px' }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #e0e0e0', borderRadius: '8px' }}
-                  formatter={(v: number) => `$${v.toLocaleString()}`}
-                />
-                <ReferenceLine x="Apr" stroke="#5a5a5a" strokeDasharray="3 3" label={{ value: 'Today', position: 'top', fontSize: 10, fill: '#5a5a5a' }} />
-                <Line type="monotone" dataKey="actual" stroke="#57886c" strokeWidth={2} dot={{ fill: '#57886c', r: 4 }} connectNulls={false} isAnimationActive={false} name="Actual" />
-                <Line type="monotone" dataKey="projected" stroke="#57886c" strokeWidth={2} strokeDasharray="6 4" dot={{ fill: '#57886c', r: 4 }} connectNulls isAnimationActive={false} name="Projected" />
-              </LineChart>
-            </ResponsiveContainer>
-            <p className="text-xs text-[#5a5a5a] mt-3 text-center">
-              At this rate, you'll have <span className="text-[#57886c]">$21,500</span> by October 2026
-            </p>
-          </div>
-
-          {/* FICO Score */}
-          <div className="bg-white border border-[#e0e0e0] rounded-lg p-6">
-            <h3 className="text-base mb-4 flex items-center gap-2">
-              <Info className="w-4 h-4 text-[#57886c]" />
-              FICO Score Improvement
-            </h3>
-            <div className="flex flex-col sm:flex-row gap-6 items-start">
-              <div className="flex flex-col items-center bg-[#f5f5f0] border border-[#e0e0e0] rounded-lg p-5 min-w-[140px]">
-                <div className="text-xs text-[#5a5a5a] mb-1">Est. FICO Score</div>
-                <div className="text-4xl text-[#57886c]">712</div>
-                <div className="text-xs text-[#5a5a5a] mt-1">Good range</div>
-                <div className="mt-3 w-full">
-                  {[
-                    { label: 'Poor', color: '#c0392b', range: '300–579' },
-                    { label: 'Fair', color: '#e8924a', range: '580–669' },
-                    { label: 'Good', color: '#fbbf24', range: '670–739' },
-                    { label: 'Very Good', color: '#81a684', range: '740–799' },
-                    { label: 'Exceptional', color: '#57886c', range: '800–850' },
-                  ].map((band) => (
-                    <div key={band.label} className="flex items-center gap-2 mb-1">
-                      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: band.color }} />
-                      <div className="text-xs text-[#5a5a5a]">{band.label}</div>
-                    </div>
-                  ))}
+          <div className="flex-1">
+            <p className="text-sm text-[#1a1a1a] mb-4">{analysis.fico}</p>
+            <div className="flex flex-col gap-2">
+              {[
+                { factor: 'Payment History',    pct: 35, score: 'On time ✓',      good: true  },
+                { factor: 'Credit Utilization', pct: 30, score: '42% — too high', good: false },
+                { factor: 'Credit Age',         pct: 15, score: '4.2 years avg',  good: true  },
+                { factor: 'Credit Mix',         pct: 10, score: 'Cards + loan ✓', good: true  },
+                { factor: 'New Inquiries',      pct: 10, score: '1 recent',       good: true  },
+              ].map((f) => (
+                <div key={f.factor} className="flex items-center gap-3">
+                  <div className="text-xs text-[#5a5a5a] w-32 shrink-0">{f.factor} ({f.pct}%)</div>
+                  <div className="flex-1 h-1.5 bg-[#e0e0e0] rounded-full">
+                    <div
+                      className="h-1.5 rounded-full"
+                      style={{ width: `${f.pct * 2}%`, backgroundColor: f.good ? '#57886c' : '#c0392b' }}
+                    />
+                  </div>
+                  <div className={`text-xs shrink-0 ${f.good ? 'text-[#57886c]' : 'text-[#c0392b]'}`}>
+                    {f.score}
+                  </div>
                 </div>
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-[#1a1a1a] mb-4">{analysis.fico}</p>
-                <div className="flex flex-col gap-2">
-                  {[
-                    { factor: 'Payment History', pct: 35, score: 'On time ✓', good: true },
-                    { factor: 'Credit Utilization', pct: 30, score: '42% — too high', good: false },
-                    { factor: 'Credit Age', pct: 15, score: '4.2 years avg', good: true },
-                    { factor: 'Credit Mix', pct: 10, score: 'Cards + loan ✓', good: true },
-                    { factor: 'New Inquiries', pct: 10, score: '1 recent', good: true },
-                  ].map((f) => (
-                    <div key={f.factor} className="flex items-center gap-3">
-                      <div className="text-xs text-[#5a5a5a] w-32 shrink-0">{f.factor} ({f.pct}%)</div>
-                      <div className="flex-1 h-1.5 bg-[#e0e0e0] rounded-full">
-                        <div
-                          className="h-1.5 rounded-full"
-                          style={{ width: `${f.pct * 2}%`, backgroundColor: f.good ? '#57886c' : '#c0392b' }}
-                        />
-                      </div>
-                      <div className={`text-xs shrink-0 ${f.good ? 'text-[#57886c]' : 'text-[#c0392b]'}`}>
-                        {f.score}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
           </div>
-        </>
-      )}
+        </div>
+      </div>
     </div>
   );
 }
