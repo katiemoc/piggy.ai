@@ -32,13 +32,13 @@ export function UploadScreen({ onUpload }: UploadScreenProps) {
         >
           <Upload className="w-12 h-12 text-[#5a5a5a]" />
           <div className="text-center">
-            <p className="mb-1">Drag and drop your CSV file here</p>
+            <p className="mb-1">Drag and drop your PDF file here</p>
             <p className="text-sm text-[#5a5a5a]">or click to browse</p>
           </div>
           <input
             id="file-input"
             type="file"
-            accept=".csv"
+            accept=".pdf"
             className="hidden"
             onChange={() => onUpload(false)}
           />
