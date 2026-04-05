@@ -6,6 +6,7 @@ import { HistoryPage } from './pages/HistoryPage';
 import { AIPage } from './pages/AIPage';
 import { GamifyPage } from './pages/GamifyPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { BrowserUseTestPanel } from './components/BrowserUseTestPanel';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
@@ -56,6 +57,7 @@ export const router = createBrowserRouter([
       { path: 'history', Component: HistoryPage },
       { path: 'gamify', Component: GamifyPage },
       { path: 'profile', Component: ProfilePage },
+      { path: 'bu-test', Component: BrowserUseTestPanel },
     ],
   },
   {
