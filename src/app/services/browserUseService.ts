@@ -1,10 +1,18 @@
 // src/services/browserUseService.ts
 
-const BACKEND_API =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") || "";
+const BU_API = "https://api.browser-use.com/api/v3";
+
+const API_KEY =
+  import.meta.env.VITE_BROWSER_USE_API_KEY ||
+  import.meta.env.VITE_BROWSER_USE_KEY;
+
+if (!API_KEY) {
+  console.warn("[BrowserUse] Missing Browser Use API key");
+}
 
 const headers = {
   "Content-Type": "application/json",
+  "X-Browser-Use-API-Key": API_KEY,
 };
 
 const BANK_INSTRUCTIONS: Record<string, string> = {
@@ -64,10 +72,6 @@ export interface SessionStatus {
   error?: string;
 }
 
-function getApiUrl(path: string): string {
-  return `${BACKEND_API}${path}`;
-}
-
 async function parseErrorResponse(response: Response): Promise<string> {
   const text = await response.text();
   try {
@@ -86,11 +90,10 @@ export async function createBankTask(bank: string): Promise<string> {
     throw new Error(`Unsupported bank: ${bank}`);
   }
 
-  const response = await fetch(getApiUrl("/api/browseruse/session"), {
+  const response = await fetch(`${BU_API}/sessions`, {
     method: "POST",
     headers,
     body: JSON.stringify({
-      bank: normalizedBank,
       task: instruction.trim(),
     }),
   });
@@ -101,23 +104,20 @@ export async function createBankTask(bank: string): Promise<string> {
   }
 
   const data = await response.json();
+  const sessionId = data.id ?? data.sessionId;
 
-  const sessionId = data.sessionId ?? data.id;
   if (!sessionId) {
-    throw new Error("Backend did not return a session ID");
+    throw new Error("Browser Use did not return a session ID");
   }
 
   return sessionId;
 }
 
 export async function getTaskStatus(sessionId: string): Promise<SessionStatus> {
-  const response = await fetch(
-    getApiUrl(`/api/browseruse/session/${encodeURIComponent(sessionId)}`),
-    {
-      method: "GET",
-      headers,
-    }
-  );
+  const response = await fetch(`${BU_API}/sessions/${encodeURIComponent(sessionId)}`, {
+    method: "GET",
+    headers,
+  });
 
   if (!response.ok) {
     const errBody = await parseErrorResponse(response);
@@ -127,9 +127,9 @@ export async function getTaskStatus(sessionId: string): Promise<SessionStatus> {
   const data = await response.json();
 
   return {
-    sessionId: data.sessionId ?? data.id ?? sessionId,
+    sessionId: data.id ?? data.sessionId ?? sessionId,
     status: data.status,
-    liveUrl: data.liveUrl ?? data.live_url,
+    liveUrl: data.live_url ?? data.liveUrl,
     output: data.output ?? data.result ?? "",
     error: data.error,
   };
@@ -189,9 +189,7 @@ function categorize(description: string): string {
 
   if (/uber|lyft|bart|muni|gas|shell|chevron/.test(d)) return "Transport";
   if (/amazon|walmart|target|costco/.test(d)) return "Shopping";
-  if (/restaurant|mcdonald|chipotle|doordash|grubhub|coffee|starbucks/.test(d)) {
-    return "Food & Dining";
-  }
+  if (/restaurant|mcdonald|chipotle|doordash|grubhub|coffee|starbucks/.test(d)) return "Food & Dining";
   if (/netflix|spotify|hulu|apple|disney/.test(d)) return "Subscriptions";
   if (/rent|apartment|landlord/.test(d)) return "Housing";
   if (/venmo|zelle|transfer/.test(d)) return "Transfer";

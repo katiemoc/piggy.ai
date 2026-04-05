@@ -10,8 +10,13 @@ import chatRoutes from './routes/chat.js';
 dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+
 app.set('trust proxy', 1);
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://piggy-ai.tech'],
+  credentials: true,
+}));
 app.use(express.json());
 app.use(passport.initialize());
 app.use('/api/auth/google', googleRoutes);
@@ -39,8 +44,14 @@ app.post('/api/browseruse/session', async (req, res) => {
       body: JSON.stringify(req.body),
     });
 
-    const data = await response.json();
-    return res.status(response.status).json(data);
+    const text = await response.text();
+
+    try {
+      const data = JSON.parse(text);
+      return res.status(response.status).json(data);
+    } catch {
+      return res.status(response.status).send(text);
+    }
   } catch (err) {
     console.error('BrowserUse create session error:', err);
     return res.status(500).json({ error: 'Failed to create BrowserUse session' });
@@ -61,8 +72,14 @@ app.get('/api/browseruse/session/:id', async (req, res) => {
       },
     });
 
-    const data = await response.json();
-    return res.status(response.status).json(data);
+    const text = await response.text();
+
+    try {
+      const data = JSON.parse(text);
+      return res.status(response.status).json(data);
+    } catch {
+      return res.status(response.status).send(text);
+    }
   } catch (err) {
     console.error('BrowserUse get session error:', err);
     return res.status(500).json({ error: 'Failed to fetch BrowserUse session status' });
@@ -73,6 +90,6 @@ app.get('/', (req, res) => {
   res.json({ message: 'Piggy AI backend running' });
 });
 
-app.listen(process.env.PORT, () =>
-  console.log(`Server running on port ${process.env.PORT}`)
-);
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
